@@ -1,24 +1,23 @@
 import React, { useState } from 'react';
-import {
-  View, Text, ScrollView, StyleSheet, Pressable,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { format, isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
-import { useStore } from '../store';
-import { useTheme } from '../context/ThemeContext';
-import HabitCard from '../components/habits/HabitCard';
-import TaskItem from '../components/tasks/TaskItem';
-import OrangeButton from '../components/common/OrangeButton';
-import BottomModal from '../components/common/BottomModal';
-import EditModal from '../components/common/EditModal';
-import SettingsBar from '../components/common/SettingsBar';
-import FormInput from '../components/common/FormInput';
-import ProgressRing from '../components/common/ProgressRing';
-import WeekStrip from '../components/common/WeekStrip';
-import { Spacing, Radius } from '../theme';
-import { Priority, Frequency } from '../types';
+import { useStore } from '@/store';
+import { useTheme } from '@/context/ThemeContext';
+import HabitCard from '@/components/habits/HabitCard';
+import TaskItem from '@/components/tasks/TaskItem';
+import OrangeButton from '@/components/common/OrangeButton';
+import BottomModal from '@/components/common/BottomModal';
+import EditModal from '@/components/common/EditModal';
+import SettingsBar from '@/components/common/SettingsBar';
+import FormInput from '@/components/common/FormInput';
+import ProgressRing from '@/components/common/ProgressRing';
+import WeekStrip from '@/components/common/WeekStrip';
+import { Spacing, Radius, type AppTheme } from '@/theme';
+import type { Task, Habit } from '@/types';
+import { Priority, Frequency } from '@/types';
 
 const fmtDate = (d: Date) => format(d, 'yyyy-MM-dd');
 
@@ -26,17 +25,27 @@ export default function TodayScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const {
-    habits, tasks,
-    toggleHabitToday, isHabitDoneToday,
-    addHabit, editHabit, removeHabit,
-    addTask, editTask, removeTask, toggleTask,
-    getTodayProgress, history,
+    habits,
+    tasks,
+    toggleHabitToday,
+    isHabitDoneToday,
+    addHabit,
+    editHabit,
+    removeHabit,
+    addTask,
+    editTask,
+    removeTask,
+    toggleTask,
+    getTodayProgress,
+    history,
   } = useStore();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [modalTask, setModalTask] = useState(false);
   const [modalHabit, setModalHabit] = useState(false);
-  const [editItem, setEditItem] = useState<{ type: 'task' | 'habit'; data: any } | null>(null);
+  const [editItem, setEditItem] = useState<
+    { type: 'task'; data: Task } | { type: 'habit'; data: Habit } | null
+  >(null);
 
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState<Priority>('medium');
@@ -46,9 +55,9 @@ export default function TodayScreen() {
 
   const isToday = isSameDay(selectedDate, new Date());
   const dateStr = fmtDate(selectedDate);
-  const todayTasks = tasks.filter(t => t.date === dateStr);
-  const dailyHabits = habits.filter(h => h.frequency === 'daily');
-  const weeklyHabits = habits.filter(h => h.frequency === 'weekly');
+  const todayTasks = tasks.filter((t) => t.date === dateStr);
+  const dailyHabits = habits.filter((h) => h.frequency === 'daily');
+  const weeklyHabits = habits.filter((h) => h.frequency === 'weekly');
   const progress = getTodayProgress();
 
   // Días con al menos 1 hábito cumplido
@@ -59,13 +68,18 @@ export default function TodayScreen() {
   const handleAddTask = () => {
     if (!taskTitle.trim()) return;
     addTask({ title: taskTitle.trim(), priority: taskPriority, date: dateStr });
-    setTaskTitle(''); setTaskPriority('medium'); setModalTask(false);
+    setTaskTitle('');
+    setTaskPriority('medium');
+    setModalTask(false);
   };
 
   const handleAddHabit = () => {
     if (!habitName.trim()) return;
     addHabit({ name: habitName.trim(), description: habitDesc.trim(), frequency: habitFreq });
-    setHabitName(''); setHabitDesc(''); setHabitFreq('daily'); setModalHabit(false);
+    setHabitName('');
+    setHabitDesc('');
+    setHabitFreq('daily');
+    setModalHabit(false);
   };
 
   const priorities: Priority[] = ['high', 'medium', 'low'];
@@ -84,7 +98,6 @@ export default function TodayScreen() {
       />
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
-
         {/* Title */}
         <View style={s.header}>
           <Text style={[s.title, { color: theme.text }]}>
@@ -104,10 +117,20 @@ export default function TodayScreen() {
         <View style={s.ringSection}>
           <View style={s.ringsRow}>
             <View style={s.ringWrapper}>
-              <ProgressRing progress={progress.habits} size={148} strokeWidth={11} label={t('habitsToday')} />
+              <ProgressRing
+                progress={progress.habits}
+                size={148}
+                strokeWidth={11}
+                label={t('habitsToday')}
+              />
             </View>
             <View style={s.ringWrapper}>
-              <ProgressRing progress={progress.tasks} size={148} strokeWidth={11} label={t('tasksToday')} />
+              <ProgressRing
+                progress={progress.tasks}
+                size={148}
+                strokeWidth={11}
+                label={t('tasksToday')}
+              />
             </View>
           </View>
         </View>
@@ -125,25 +148,28 @@ export default function TodayScreen() {
             </View>
             {todayTasks.length === 0 ? (
               <Text style={[s.emptyInline, { color: theme.textMuted }]}>{t('emptyTasks')}</Text>
-            ) : todayTasks.map(task => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onToggle={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); toggleTask(task.id); }}
-                onDelete={() => removeTask(task.id)}
-                onEdit={() => setEditItem({ type: 'task', data: task })}
-                priorityLabel={t(`priority.${task.priority}`)}
-              />
-            ))}
+            ) : (
+              todayTasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggle={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    toggleTask(task.id);
+                  }}
+                  onDelete={() => removeTask(task.id)}
+                  onEdit={() => setEditItem({ type: 'task', data: task })}
+                  priorityLabel={t(`priority.${task.priority}`)}
+                />
+              ))
+            )}
           </View>
         )}
 
         {/* Daily habits */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
-              {t('dailyHabits')}
-            </Text>
+            <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>{t('dailyHabits')}</Text>
             <Pressable onPress={() => setModalHabit(true)}>
               <Text style={[s.sectionAction, { color: theme.accent }]}>{t('newHabit')}</Text>
             </Pressable>
@@ -152,21 +178,28 @@ export default function TodayScreen() {
             <View style={[s.emptyCard, { backgroundColor: theme.surface }]}>
               <Text style={s.emptyBig}>✨</Text>
               <Text style={[s.emptyTitle, { color: theme.text }]}>{t('habitsEmpty.title')}</Text>
-              <Text style={[s.emptyDesc, { color: theme.textSecondary }]}>{t('habitsEmpty.desc')}</Text>
-              <Pressable style={[s.emptyBtn, { backgroundColor: theme.accent }]} onPress={() => setModalHabit(true)}>
+              <Text style={[s.emptyDesc, { color: theme.textSecondary }]}>
+                {t('habitsEmpty.desc')}
+              </Text>
+              <Pressable
+                style={[s.emptyBtn, { backgroundColor: theme.accent }]}
+                onPress={() => setModalHabit(true)}
+              >
                 <Text style={s.emptyBtnText}>{t('newHabit')}</Text>
               </Pressable>
             </View>
-          ) : dailyHabits.map(h => (
-            <HabitCard
-              key={h.id}
-              habit={h}
-              done={isHabitDoneToday(h.id)}
-              onToggle={() => toggleHabitToday(h.id)}
-              onDelete={() => removeHabit(h.id)}
-              onEdit={() => setEditItem({ type: 'habit', data: h })}
-            />
-          ))}
+          ) : (
+            dailyHabits.map((h) => (
+              <HabitCard
+                key={h.id}
+                habit={h}
+                done={isHabitDoneToday(h.id)}
+                onToggle={() => toggleHabitToday(h.id)}
+                onDelete={() => removeHabit(h.id)}
+                onEdit={() => setEditItem({ type: 'habit', data: h })}
+              />
+            ))
+          )}
         </View>
 
         {/* Weekly habits */}
@@ -175,7 +208,7 @@ export default function TodayScreen() {
             <Text style={[s.sectionTitle, { color: theme.textSecondary, marginBottom: 10 }]}>
               {t('weeklyHabits')}
             </Text>
-            {weeklyHabits.map(h => (
+            {weeklyHabits.map((h) => (
               <HabitCard
                 key={h.id}
                 habit={h}
@@ -203,18 +236,38 @@ export default function TodayScreen() {
         />
         <Text style={[s.formLabel, { color: theme.textSecondary }]}>{t('priority.label')}</Text>
         <View style={s.segRow}>
-          {priorities.map(p => (
+          {priorities.map((p) => (
             <Pressable
               key={p}
-              style={[s.seg, { backgroundColor: theme.surface2, borderColor: theme.border }, taskPriority === p && { backgroundColor: theme.accentDim, borderColor: theme.accent }]}
+              style={[
+                s.seg,
+                { backgroundColor: theme.surface2, borderColor: theme.border },
+                taskPriority === p && {
+                  backgroundColor: theme.accentDim,
+                  borderColor: theme.accent,
+                },
+              ]}
               onPress={() => setTaskPriority(p)}
             >
-              <Text style={[s.segText, { color: theme.textSecondary }, taskPriority === p && { color: theme.accent }]}>{t(`priority.${p}`)}</Text>
+              <Text
+                style={[
+                  s.segText,
+                  { color: theme.textSecondary },
+                  taskPriority === p && { color: theme.accent },
+                ]}
+              >
+                {t(`priority.${p}`)}
+              </Text>
             </Pressable>
           ))}
         </View>
         <View style={s.modalActions}>
-          <OrangeButton label={t('actions.cancel')} onPress={() => setModalTask(false)} variant="ghost" style={{ flex: 1 }} />
+          <OrangeButton
+            label={t('actions.cancel')}
+            onPress={() => setModalTask(false)}
+            variant="ghost"
+            style={{ flex: 1 }}
+          />
           <OrangeButton label={t('actions.save')} onPress={handleAddTask} style={{ flex: 2 }} />
         </View>
       </BottomModal>
@@ -222,22 +275,50 @@ export default function TodayScreen() {
       {/* Modal: nuevo hábito */}
       <BottomModal visible={modalHabit} onClose={() => setModalHabit(false)}>
         <Text style={[s.modalTitle, { color: theme.text }]}>{t('modals.addHabit')}</Text>
-        <FormInput label={t('forms.habitName')} placeholder={t('forms.habitNamePlaceholder')} value={habitName} onChangeText={setHabitName} autoFocus />
-        <FormInput label={t('forms.habitDesc')} placeholder={t('forms.habitDescPlaceholder')} value={habitDesc} onChangeText={setHabitDesc} />
+        <FormInput
+          label={t('forms.habitName')}
+          placeholder={t('forms.habitNamePlaceholder')}
+          value={habitName}
+          onChangeText={setHabitName}
+          autoFocus
+        />
+        <FormInput
+          label={t('forms.habitDesc')}
+          placeholder={t('forms.habitDescPlaceholder')}
+          value={habitDesc}
+          onChangeText={setHabitDesc}
+        />
         <Text style={[s.formLabel, { color: theme.textSecondary }]}>{t('frequency.label')}</Text>
         <View style={s.segRow}>
-          {frequencies.map(f => (
+          {frequencies.map((f) => (
             <Pressable
               key={f}
-              style={[s.seg, { backgroundColor: theme.surface2, borderColor: theme.border }, habitFreq === f && { backgroundColor: theme.accentDim, borderColor: theme.accent }]}
+              style={[
+                s.seg,
+                { backgroundColor: theme.surface2, borderColor: theme.border },
+                habitFreq === f && { backgroundColor: theme.accentDim, borderColor: theme.accent },
+              ]}
               onPress={() => setHabitFreq(f)}
             >
-              <Text style={[s.segText, { color: theme.textSecondary }, habitFreq === f && { color: theme.accent }]}>{t(`frequency.${f}`)}</Text>
+              <Text
+                style={[
+                  s.segText,
+                  { color: theme.textSecondary },
+                  habitFreq === f && { color: theme.accent },
+                ]}
+              >
+                {t(`frequency.${f}`)}
+              </Text>
             </Pressable>
           ))}
         </View>
         <View style={s.modalActions}>
-          <OrangeButton label={t('actions.cancel')} onPress={() => setModalHabit(false)} variant="ghost" style={{ flex: 1 }} />
+          <OrangeButton
+            label={t('actions.cancel')}
+            onPress={() => setModalHabit(false)}
+            variant="ghost"
+            style={{ flex: 1 }}
+          />
           <OrangeButton label={t('actions.save')} onPress={handleAddHabit} style={{ flex: 2 }} />
         </View>
       </BottomModal>
@@ -259,50 +340,68 @@ export default function TodayScreen() {
   );
 }
 
-const makeStyles = (theme: any) => StyleSheet.create({
-  safe: { flex: 1 },
-  scroll: { flex: 1 },
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: 0,
-  },
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
-  headerBtns: { flexDirection: 'row', gap: 8 },
-  circleBtn: {
-    width: 38, height: 38, borderRadius: 19,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  circleBtnText: { fontSize: 22, fontWeight: '300', marginTop: -1 },
-  ringSection: { alignItems: 'center', paddingVertical: Spacing.lg },
-  ringsRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.xl },
-  ringWrapper: { alignItems: 'center' },
-  section: { paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg },
-  sectionHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: 10,
-  },
-  sectionTitle: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  sectionAction: { fontSize: 14, fontWeight: '600' },
-  emptyInline: { fontSize: 13, paddingVertical: 8 },
-  emptyCard: {
-    borderRadius: Radius.xl, padding: Spacing.xl,
-    alignItems: 'center', gap: 10,
-  },
-  emptyBig: { fontSize: 48, marginBottom: 8 },
-  emptyTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', letterSpacing: -0.5 },
-  emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  emptyBtn: {
-    marginTop: 8, paddingHorizontal: Spacing.xl, paddingVertical: 14,
-    borderRadius: Radius.full, width: '100%', alignItems: 'center',
-  },
-  emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: Spacing.lg },
-  formLabel: { fontSize: 13, marginBottom: Spacing.sm, fontWeight: '500' },
-  segRow: { flexDirection: 'row', gap: 8, marginBottom: Spacing.md },
-  seg: { flex: 1, padding: 10, borderRadius: Radius.md, borderWidth: 1, alignItems: 'center' },
-  segText: { fontSize: 13, fontWeight: '500' },
-  modalActions: { flexDirection: 'row', gap: 10, marginTop: Spacing.md },
-});
+const makeStyles = (_theme: AppTheme) =>
+  StyleSheet.create({
+    safe: { flex: 1 },
+    scroll: { flex: 1 },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.lg,
+      paddingTop: Spacing.sm,
+      paddingBottom: 0,
+    },
+    title: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+    headerBtns: { flexDirection: 'row', gap: 8 },
+    circleBtn: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    circleBtnText: { fontSize: 22, fontWeight: '300', marginTop: -1 },
+    ringSection: { alignItems: 'center', paddingVertical: Spacing.lg },
+    ringsRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.xl },
+    ringWrapper: { alignItems: 'center' },
+    section: { paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10,
+    },
+    sectionTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    sectionAction: { fontSize: 14, fontWeight: '600' },
+    emptyInline: { fontSize: 13, paddingVertical: 8 },
+    emptyCard: {
+      borderRadius: Radius.xl,
+      padding: Spacing.xl,
+      alignItems: 'center',
+      gap: 10,
+    },
+    emptyBig: { fontSize: 48, marginBottom: 8 },
+    emptyTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', letterSpacing: -0.5 },
+    emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+    emptyBtn: {
+      marginTop: 8,
+      paddingHorizontal: Spacing.xl,
+      paddingVertical: 14,
+      borderRadius: Radius.full,
+      width: '100%',
+      alignItems: 'center',
+    },
+    emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+    modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: Spacing.lg },
+    formLabel: { fontSize: 13, marginBottom: Spacing.sm, fontWeight: '500' },
+    segRow: { flexDirection: 'row', gap: 8, marginBottom: Spacing.md },
+    seg: { flex: 1, padding: 10, borderRadius: Radius.md, borderWidth: 1, alignItems: 'center' },
+    segText: { fontSize: 13, fontWeight: '500' },
+    modalActions: { flexDirection: 'row', gap: 10, marginTop: Spacing.md },
+  });

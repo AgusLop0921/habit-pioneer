@@ -41,17 +41,11 @@ export interface ShoppingItem {
   userId?: string;
 }
 
-export interface DayRecord {
-  habits: Record<string, boolean>;
-  tasks: Record<string, boolean>;
-}
+export type DayHistory = Record<string, boolean>;
 
-export interface AppState {
-  habits: Habit[];
-  tasks: Task[];
-  weeklyGoals: WeeklyGoal[];
-  shoppingList: ShoppingItem[];
-  history: Record<string, DayRecord>;
-  language: Language;
-  themeMode: ThemeMode;
-}
+export type RootTabParamList = {
+  Today: undefined;
+  History: undefined;
+  Goals: undefined;
+  Shopping: undefined;
+};

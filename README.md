@@ -51,10 +51,4 @@ import i18n from './src/i18n';
 i18n.changeLanguage('en');
 ```
 
-## Próximos pasos (Fase 2)
-- [ ] Login con Firebase Auth / Supabase
-- [ ] Sincronización en la nube
-- [ ] Notificaciones push (expo-notifications)
-- [ ] Widget para home screen (expo-widgets)
-- [ ] Racha de hábitos y estadísticas históricas
 # habit-pioneer

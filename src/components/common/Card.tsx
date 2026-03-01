@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewStyle, StyleSheet, Pressable } from 'react-native';
-import { Colors, Radius, Spacing } from '../../theme';
+import { Colors, Radius, Spacing } from '@/theme';
 
 interface Props {
   children: React.ReactNode;
@@ -10,11 +10,7 @@ interface Props {
 }
 
 export default function Card({ children, style, onPress, variant = 'default' }: Props) {
-  const content = (
-    <View style={[styles.card, styles[variant], style]}>
-      {children}
-    </View>
-  );
+  const content = <View style={[styles.card, styles[variant], style]}>{children}</View>;
 
   if (onPress) {
     return (

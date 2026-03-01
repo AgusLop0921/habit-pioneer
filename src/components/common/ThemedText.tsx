@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TextStyle, StyleSheet } from 'react-native';
-import { Colors, Typography } from '../../theme';
+import { Colors, Typography } from '@/theme';
 
 interface Props {
   children: React.ReactNode;
@@ -10,12 +10,15 @@ interface Props {
   numberOfLines?: number;
 }
 
-export default function ThemedText({ children, style, variant = 'body', color, numberOfLines }: Props) {
+export default function ThemedText({
+  children,
+  style,
+  variant = 'body',
+  color,
+  numberOfLines,
+}: Props) {
   return (
-    <Text
-      style={[styles[variant], color ? { color } : null, style]}
-      numberOfLines={numberOfLines}
-    >
+    <Text style={[styles[variant], color ? { color } : null, style]} numberOfLines={numberOfLines}>
       {children}
     </Text>
   );

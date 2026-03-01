@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import SwipeableRow from '../common/SwipeableRow';
-import CheckCircle from '../common/CheckCircle';
-import Icon, { IconName } from '../common/Icon';
-import { useTheme } from '../../context/ThemeContext';
-import { Spacing, Radius } from '../../theme';
-import { Task, Priority } from '../../types';
+import SwipeableRow from '@/components/common/SwipeableRow';
+import CheckCircle from '@/components/common/CheckCircle';
+import Icon, { IconName } from '@/components/common/Icon';
+import { useTheme } from '@/context/ThemeContext';
+import { Spacing, Radius } from '@/theme';
+import { Task, Priority } from '@/types';
 
 const PRIORITY_META: Record<Priority, { color: string; icon: IconName }> = {
-  high:   { color: '#ff453a', icon: 'priorityHigh' },
+  high: { color: '#ff453a', icon: 'priorityHigh' },
   medium: { color: '#ffd60a', icon: 'priorityMedium' },
-  low:    { color: '#30d158', icon: 'priorityLow' },
+  low: { color: '#30d158', icon: 'priorityLow' },
 };
 
 interface Props {
@@ -34,7 +34,11 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
   return (
     <SwipeableRow onDelete={onDelete} onEdit={onEdit} deleteLabel="Borrar" editLabel="Editar">
       <Pressable
-        style={[s.item, { backgroundColor: theme.surface, borderColor: theme.borderDim }, task.completed && s.done]}
+        style={[
+          s.item,
+          { backgroundColor: theme.surface, borderColor: theme.borderDim },
+          task.completed && s.done,
+        ]}
         onPress={handleToggle}
       >
         {/* Barra lateral de prioridad */}
@@ -43,7 +47,11 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
         <CheckCircle done={task.completed} onToggle={handleToggle} />
 
         <Text
-          style={[s.name, { color: task.completed ? theme.textSecondary : theme.text }, task.completed && s.strike]}
+          style={[
+            s.name,
+            { color: task.completed ? theme.textSecondary : theme.text },
+            task.completed && s.strike,
+          ]}
           numberOfLines={1}
         >
           {task.title}
@@ -61,13 +69,25 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
 
 const s = StyleSheet.create({
   item: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    padding: Spacing.md, borderRadius: Radius.xl, borderWidth: 1, overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: Spacing.md,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
   done: { opacity: 0.5 },
   priorityBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
   name: { flex: 1, fontSize: 15, fontWeight: '500', paddingLeft: 4 },
   strike: { textDecorationLine: 'line-through' },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 99,
+  },
   badgeText: { fontSize: 11, fontWeight: '600' },
 });

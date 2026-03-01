@@ -1,9 +1,15 @@
 import React from 'react';
 import {
-  Modal, View, Pressable, StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
+  Modal,
+  View,
+  Pressable,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
-import { useTheme } from '../../context/ThemeContext';
-import { Radius, Spacing } from '../../theme';
+import { useTheme } from '@/context/ThemeContext';
+import { Radius, Spacing } from '@/theme';
 
 interface Props {
   visible: boolean;
@@ -14,20 +20,12 @@ interface Props {
 export default function BottomModal({ visible, onClose, children }: Props) {
   const { theme } = useTheme();
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Pressable
-          style={[styles.overlay, { backgroundColor: theme.overlay }]}
-          onPress={onClose}
-        >
+        <Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}>
           <Pressable
             style={[styles.sheet, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={() => {}}

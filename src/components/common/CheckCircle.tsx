@@ -1,9 +1,13 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 import Icon from './Icon';
 
-interface Props { done: boolean; onToggle: () => void; size?: number; }
+interface Props {
+  done: boolean;
+  onToggle: () => void;
+  size?: number;
+}
 
 export default function CheckCircle({ done, onToggle, size = 24 }: Props) {
   const { theme } = useTheme();

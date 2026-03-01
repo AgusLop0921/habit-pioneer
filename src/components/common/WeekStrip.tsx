@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 import { format, startOfWeek, addDays, isSameDay, isAfter } from 'date-fns';
-import { Spacing } from '../../theme';
+import { Spacing } from '@/theme';
 
 interface Props {
   selectedDate: Date;
@@ -32,16 +32,15 @@ export default function WeekStrip({ selectedDate, onSelectDate, completedDates =
           <Pressable
             key={i}
             onPress={() => !isFuture && onSelectDate(day)}
-            style={[
-              styles.day,
-              isSelected && { backgroundColor: theme.accent },
-            ]}
+            style={[styles.day, isSelected && { backgroundColor: theme.accent }]}
           >
-            <Text style={[
-              styles.letter,
-              { color: isSelected ? '#fff' : theme.textSecondary },
-              isToday && !isSelected && { color: theme.accent },
-            ]}>
+            <Text
+              style={[
+                styles.letter,
+                { color: isSelected ? '#fff' : theme.textSecondary },
+                isToday && !isSelected && { color: theme.accent },
+              ]}
+            >
               {DAY_LETTERS[i]}
             </Text>
             {isCompleted && !isSelected && (

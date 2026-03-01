@@ -9,11 +9,18 @@
  *   if (__DEV__ && store.habits.length === 0) seedStore(store);
  */
 import { format } from 'date-fns';
+import type { StoreState } from '@/store';
 
-export function seedStore(store: any) {
+export function seedStore(
+  store: Pick<StoreState, 'addHabit' | 'addTask' | 'addWeeklyGoal' | 'addShoppingItem'>
+) {
   const today = format(new Date(), 'yyyy-MM-dd');
 
-  store.addHabit({ name: 'Leer 10 páginas', description: 'En un momento tranquilo', frequency: 'daily' });
+  store.addHabit({
+    name: 'Leer 10 páginas',
+    description: 'En un momento tranquilo',
+    frequency: 'daily',
+  });
   store.addHabit({ name: 'Hacer la cama', description: 'Apenas me levanto', frequency: 'daily' });
   store.addHabit({ name: 'Salir a correr', description: '', frequency: 'daily' });
   store.addHabit({ name: 'Lavar platos después de comer', description: '', frequency: 'daily' });

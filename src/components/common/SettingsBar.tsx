@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, Pressable,
-  Modal, TouchableOpacity, Image,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '../../store';
-import { useTheme } from '../../context/ThemeContext';
+import { useStore } from '@/store';
+import { useTheme } from '@/context/ThemeContext';
 import Icon from './Icon';
-import { Spacing, Radius } from '../../theme';
-import { Language } from '../../types';
+import { Spacing, Radius } from '@/theme';
+import { Language } from '@/types';
 
 const LANGUAGES: { code: Language; label: string; flag: string }[] = [
-  { code: 'es', label: 'Español',   flag: '🇦🇷' },
-  { code: 'en', label: 'English',   flag: '🇺🇸' },
+  { code: 'es', label: 'Español', flag: '🇦🇷' },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
   { code: 'pt', label: 'Português', flag: '🇧🇷' },
 ];
 const APP_ICON = require('../../../assets/icon.png');
@@ -23,7 +20,7 @@ export default function SettingsBar() {
   const { theme, isDark, toggleTheme } = useTheme();
   const [showLang, setShowLang] = useState(false);
 
-  const currentLang = LANGUAGES.find(l => l.code === language) ?? LANGUAGES[0];
+  const currentLang = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
 
   const handleSelectLang = (code: Language) => {
     setLanguage(code);
@@ -45,11 +42,7 @@ export default function SettingsBar() {
             style={[s.iconBtn, { backgroundColor: theme.surface, borderColor: theme.borderDim }]}
             onPress={toggleTheme}
           >
-            <Icon
-              name={isDark ? 'sun' : 'moon'}
-              size={18}
-              color={theme.textSecondary}
-            />
+            <Icon name={isDark ? 'sun' : 'moon'} size={18} color={theme.textSecondary} />
           </Pressable>
 
           {/* Language picker */}
@@ -78,25 +71,24 @@ export default function SettingsBar() {
           onPress={() => setShowLang(false)}
         >
           <View style={[s.dropdown, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[s.dropTitle, { color: theme.textSecondary }]}>
-              {t('language')}
-            </Text>
-            {LANGUAGES.map(lang => (
+            <Text style={[s.dropTitle, { color: theme.textSecondary }]}>{t('language')}</Text>
+            {LANGUAGES.map((lang) => (
               <Pressable
                 key={lang.code}
                 style={({ pressed }) => [
                   s.dropItem,
                   { borderColor: 'transparent' },
-                  language === lang.code && { backgroundColor: theme.accentDim, borderColor: theme.accent },
+                  language === lang.code && {
+                    backgroundColor: theme.accentDim,
+                    borderColor: theme.accent,
+                  },
                   pressed && { opacity: 0.75 },
                 ]}
                 onPress={() => handleSelectLang(lang.code)}
               >
                 <Text style={s.dropFlag}>{lang.flag}</Text>
                 <Text style={[s.dropLabel, { color: theme.text }]}>{lang.label}</Text>
-                {language === lang.code && (
-                  <Icon name="check" size={16} color={theme.accent} />
-                )}
+                {language === lang.code && <Icon name="check" size={16} color={theme.accent} />}
               </Pressable>
             ))}
           </View>
@@ -108,9 +100,11 @@ export default function SettingsBar() {
 
 const s = StyleSheet.create({
   bar: {
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg, paddingVertical: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -118,29 +112,58 @@ const s = StyleSheet.create({
   logoText: { fontSize: 15, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   iconBtn: {
-    width: 36, height: 36, borderRadius: Radius.md,
-    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   langBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 10, paddingVertical: 7,
-    borderRadius: Radius.md, borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: Radius.md,
+    borderWidth: 1,
   },
   langFlag: { fontSize: 16 },
   langCode: { fontSize: 12, fontWeight: '600' },
-  overlay: { flex: 1, alignItems: 'flex-end', justifyContent: 'flex-start', paddingTop: 72, paddingRight: Spacing.lg },
+  overlay: {
+    flex: 1,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+    paddingTop: 72,
+    paddingRight: Spacing.lg,
+  },
   dropdown: {
-    width: 200, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.sm,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25, shadowRadius: 16, elevation: 10,
+    width: 200,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    padding: Spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   dropTitle: {
-    fontSize: 11, fontWeight: '600', textTransform: 'uppercase',
-    letterSpacing: 0.5, paddingHorizontal: 8, paddingVertical: 6,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
   },
   dropItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    padding: 12, borderRadius: Radius.md, borderWidth: 1, marginBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    marginBottom: 4,
   },
   dropFlag: { fontSize: 20 },
   dropLabel: { flex: 1, fontSize: 14, fontWeight: '500' },

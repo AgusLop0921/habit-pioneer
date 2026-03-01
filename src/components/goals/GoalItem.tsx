@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import SwipeableRow from '../common/SwipeableRow';
-import Icon from '../common/Icon';
-import { useTheme } from '../../context/ThemeContext';
-import { Spacing, Radius } from '../../theme';
-import { WeeklyGoal } from '../../types';
+import SwipeableRow from '@/components/common/SwipeableRow';
+import Icon from '@/components/common/Icon';
+import { useTheme } from '@/context/ThemeContext';
+import { Spacing, Radius } from '@/theme';
+import { WeeklyGoal } from '@/types';
 
-interface Props { goal: WeeklyGoal; onLog: () => void; onDelete: () => void; onEdit: () => void; }
+interface Props {
+  goal: WeeklyGoal;
+  onLog: () => void;
+  onDelete: () => void;
+  onEdit: () => void;
+}
 
 export default function GoalItem({ goal, onLog, onDelete, onEdit }: Props) {
   const { theme } = useTheme();
@@ -60,18 +65,37 @@ export default function GoalItem({ goal, onLog, onDelete, onEdit }: Props) {
 
 const s = StyleSheet.create({
   card: {
-    padding: Spacing.md, borderRadius: Radius.xl, borderWidth: 1,
+    padding: Spacing.md,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
   },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
-  iconBadge: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  iconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   titleBlock: { flex: 1 },
   title: { fontSize: 15, fontWeight: '600' },
   sub: { fontSize: 12, marginTop: 2 },
-  streakBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99 },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 99,
+  },
   streakText: { fontSize: 13, fontWeight: '700' },
   dots: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   dot: {
-    width: 34, height: 34, borderRadius: 17, borderWidth: 2,
-    alignItems: 'center', justifyContent: 'center',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

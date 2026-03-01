@@ -1,9 +1,11 @@
 import React from 'react';
 import { TextInput, Text, View, StyleSheet, TextInputProps } from 'react-native';
-import { useTheme } from '../../context/ThemeContext';
-import { Radius, Spacing } from '../../theme';
+import { useTheme } from '@/context/ThemeContext';
+import { Radius, Spacing } from '@/theme';
 
-interface Props extends TextInputProps { label?: string; }
+interface Props extends TextInputProps {
+  label?: string;
+}
 
 export default function FormInput({ label, style, ...props }: Props) {
   const { theme } = useTheme();
@@ -11,7 +13,11 @@ export default function FormInput({ label, style, ...props }: Props) {
     <View style={styles.group}>
       {label && <Text style={[styles.label, { color: theme.textSecondary }]}>{label}</Text>}
       <TextInput
-        style={[styles.input, { backgroundColor: theme.surface2, borderColor: theme.border, color: theme.text }, style]}
+        style={[
+          styles.input,
+          { backgroundColor: theme.surface2, borderColor: theme.border, color: theme.text },
+          style,
+        ]}
         placeholderTextColor={theme.textMuted}
         {...props}
       />

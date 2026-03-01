@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
-import { Habit, Task, WeeklyGoal, ShoppingItem, Language, ThemeMode, Priority, Frequency, ShopCategory } from '../types';
+import * as Crypto from 'expo-crypto';
+import { Habit, Task, WeeklyGoal, ShoppingItem, Language, ThemeMode } from '@/types';
 
 interface Store {
   habits: Habit[];
@@ -48,7 +49,6 @@ interface Store {
 }
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
-const uuid = () => Math.random().toString(36).substring(2, 10);
 
 export const useStore = create<Store>()(
   persist(
@@ -64,12 +64,14 @@ export const useStore = create<Store>()(
       // ── HABITS ──
       addHabit: (habit) =>
         set((s) => ({
-          habits: [...s.habits, { ...habit, id: uuid(), createdAt: new Date().toISOString() }],
+          habits: [
+            ...s.habits,
+            { ...habit, id: Crypto.randomUUID(), createdAt: new Date().toISOString() },
+          ],
         })),
       editHabit: (id, updates) =>
-        set((s) => ({ habits: s.habits.map((h) => h.id === id ? { ...h, ...updates } : h) })),
-      removeHabit: (id) =>
-        set((s) => ({ habits: s.habits.filter((h) => h.id !== id) })),
+        set((s) => ({ habits: s.habits.map((h) => (h.id === id ? { ...h, ...updates } : h)) })),
+      removeHabit: (id) => set((s) => ({ habits: s.habits.filter((h) => h.id !== id) })),
       toggleHabitToday: (id) => {
         const date = today();
         set((s) => {
@@ -81,13 +83,16 @@ export const useStore = create<Store>()(
 
       // ── TASKS ──
       addTask: (task) =>
-        set((s) => ({ tasks: [...s.tasks, { ...task, id: uuid(), completed: false }] })),
+        set((s) => ({
+          tasks: [...s.tasks, { ...task, id: Crypto.randomUUID(), completed: false }],
+        })),
       editTask: (id, updates) =>
-        set((s) => ({ tasks: s.tasks.map((t) => t.id === id ? { ...t, ...updates } : t) })),
-      removeTask: (id) =>
-        set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
+        set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)) })),
+      removeTask: (id) => set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
       toggleTask: (id) =>
-        set((s) => ({ tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: !t.completed } : t) })),
+        set((s) => ({
+          tasks: s.tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
+        })),
       getTasksForToday: () => {
         const date = today();
         return get().tasks.filter((t) => t.date === date);
@@ -98,11 +103,16 @@ export const useStore = create<Store>()(
         const d = new Date();
         const weekStart = format(new Date(d.setDate(d.getDate() - d.getDay() + 1)), 'yyyy-MM-dd');
         set((s) => ({
-          weeklyGoals: [...s.weeklyGoals, { ...goal, id: uuid(), completions: [], weekStart }],
+          weeklyGoals: [
+            ...s.weeklyGoals,
+            { ...goal, id: Crypto.randomUUID(), completions: [], weekStart },
+          ],
         }));
       },
       editWeeklyGoal: (id, updates) =>
-        set((s) => ({ weeklyGoals: s.weeklyGoals.map((g) => g.id === id ? { ...g, ...updates } : g) })),
+        set((s) => ({
+          weeklyGoals: s.weeklyGoals.map((g) => (g.id === id ? { ...g, ...updates } : g)),
+        })),
       removeWeeklyGoal: (id) =>
         set((s) => ({ weeklyGoals: s.weeklyGoals.filter((g) => g.id !== id) })),
       logGoalCompletion: (id) =>
@@ -114,13 +124,21 @@ export const useStore = create<Store>()(
 
       // ── SHOPPING ──
       addShoppingItem: (item) =>
-        set((s) => ({ shoppingList: [...s.shoppingList, { ...item, id: uuid(), checked: false }] })),
+        set((s) => ({
+          shoppingList: [...s.shoppingList, { ...item, id: Crypto.randomUUID(), checked: false }],
+        })),
       editShoppingItem: (id, updates) =>
-        set((s) => ({ shoppingList: s.shoppingList.map((i) => i.id === id ? { ...i, ...updates } : i) })),
+        set((s) => ({
+          shoppingList: s.shoppingList.map((i) => (i.id === id ? { ...i, ...updates } : i)),
+        })),
       removeShoppingItem: (id) =>
         set((s) => ({ shoppingList: s.shoppingList.filter((i) => i.id !== id) })),
       toggleShoppingItem: (id) =>
-        set((s) => ({ shoppingList: s.shoppingList.map((i) => i.id === id ? { ...i, checked: !i.checked } : i) })),
+        set((s) => ({
+          shoppingList: s.shoppingList.map((i) =>
+            i.id === id ? { ...i, checked: !i.checked } : i
+          ),
+        })),
 
       // ── SETTINGS ──
       setLanguage: (lang) => set({ language: lang }),
@@ -150,3 +168,5 @@ export const useStore = create<Store>()(
     }
   )
 );
+
+export type StoreState = Store;

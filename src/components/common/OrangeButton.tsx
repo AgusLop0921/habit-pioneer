@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
-import { useTheme } from '../../context/ThemeContext';
-import { Radius, Spacing } from '../../theme';
+import { useTheme } from '@/context/ThemeContext';
+import { Radius, Spacing } from '@/theme';
 
 interface Props {
   label: string;
@@ -11,7 +11,13 @@ interface Props {
   size?: 'sm' | 'md';
 }
 
-export default function OrangeButton({ label, onPress, style, variant = 'primary', size = 'md' }: Props) {
+export default function OrangeButton({
+  label,
+  onPress,
+  style,
+  variant = 'primary',
+  size = 'md',
+}: Props) {
   const { theme } = useTheme();
   return (
     <Pressable
