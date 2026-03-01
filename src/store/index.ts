@@ -18,8 +18,8 @@ interface Store {
   addHabit: (habit: Omit<Habit, 'id' | 'createdAt'>) => void;
   editHabit: (id: string, updates: Partial<Omit<Habit, 'id' | 'createdAt'>>) => void;
   removeHabit: (id: string) => void;
-  toggleHabitToday: (id: string) => void;
-  isHabitDoneToday: (id: string) => boolean;
+  toggleHabitForDate: (id: string, date: string) => void;
+  isHabitDoneOnDate: (id: string, date: string) => boolean;
 
   // Tasks
   addTask: (task: Omit<Task, 'id' | 'completed'>) => void;
@@ -45,7 +45,7 @@ interface Store {
   setThemeMode: (mode: ThemeMode) => void;
 
   // Stats
-  getTodayProgress: () => { habits: number; tasks: number; total: number };
+  getProgressForDate: (date: string) => { habits: number; tasks: number; total: number };
 }
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
@@ -72,14 +72,13 @@ export const useStore = create<Store>()(
       editHabit: (id, updates) =>
         set((s) => ({ habits: s.habits.map((h) => (h.id === id ? { ...h, ...updates } : h)) })),
       removeHabit: (id) => set((s) => ({ habits: s.habits.filter((h) => h.id !== id) })),
-      toggleHabitToday: (id) => {
-        const date = today();
+      toggleHabitForDate: (id, date) => {
         set((s) => {
           const day = s.history[date] ?? {};
           return { history: { ...s.history, [date]: { ...day, [id]: !day[id] } } };
         });
       },
-      isHabitDoneToday: (id) => get().history[today()]?.[id] ?? false,
+      isHabitDoneOnDate: (id, date) => get().history[date]?.[id] ?? false,
 
       // ── TASKS ──
       addTask: (task) =>
@@ -145,19 +144,18 @@ export const useStore = create<Store>()(
       setThemeMode: (mode) => set({ themeMode: mode }),
 
       // ── STATS ──
-      getTodayProgress: () => {
+      getProgressForDate: (date) => {
         const state = get();
-        const date = today();
         const dayHistory = state.history[date] ?? {};
-        const todayTasks = state.tasks.filter((t) => t.date === date);
-        const totalHabits = state.habits.filter((h) => h.frequency === 'daily').length;
-        const doneHabits = Object.values(dayHistory).filter(Boolean).length;
-        const doneTasks = todayTasks.filter((t) => t.completed).length;
-        const total = totalHabits + todayTasks.length;
+        const dateTasks = state.tasks.filter((t) => t.date === date);
+        const dailyHabits = state.habits.filter((h) => h.frequency === 'daily');
+        const doneHabits = dailyHabits.filter((h) => dayHistory[h.id]).length;
+        const doneTasks = dateTasks.filter((t) => t.completed).length;
+        const total = dailyHabits.length + dateTasks.length;
         const done = doneHabits + doneTasks;
         return {
-          habits: totalHabits > 0 ? Math.round((doneHabits / totalHabits) * 100) : 0,
-          tasks: todayTasks.length > 0 ? Math.round((doneTasks / todayTasks.length) * 100) : 0,
+          habits: dailyHabits.length > 0 ? Math.round((doneHabits / dailyHabits.length) * 100) : 0,
+          tasks: dateTasks.length > 0 ? Math.round((doneTasks / dateTasks.length) * 100) : 0,
           total: total > 0 ? Math.round((done / total) * 100) : 0,
         };
       },

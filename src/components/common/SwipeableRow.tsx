@@ -9,9 +9,9 @@
  */
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, PanResponder } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 import Icon from './Icon';
-import { Radius } from '@/theme';
+import { Radius } from '../../theme';
 
 const ACTION_W = 75; // ancho de cada botón
 const TOTAL_REV = ACTION_W * 2; // total que se revela
@@ -32,6 +32,7 @@ export default function SwipeableRow({
   onEdit,
   deleteLabel = 'Borrar',
   editLabel = 'Editar',
+  borderColor,
 }: Props) {
   const { theme } = useTheme();
 
@@ -101,8 +102,10 @@ export default function SwipeableRow({
         s.container,
         {
           borderRadius: Radius.xl,
-          backgroundColor: theme.surface, // fondo de la card
+          backgroundColor: theme.surface,
           marginBottom: 10,
+          borderWidth: 1,
+          borderColor: borderColor ?? theme.border,
         },
       ]}
     >

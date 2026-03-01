@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { useStore } from '@/store';
 import { useTheme } from '@/context/ThemeContext';
@@ -27,8 +27,8 @@ export default function TodayScreen() {
   const {
     habits,
     tasks,
-    toggleHabitToday,
-    isHabitDoneToday,
+    history,
+    toggleHabitForDate,
     addHabit,
     editHabit,
     removeHabit,
@@ -36,8 +36,6 @@ export default function TodayScreen() {
     editTask,
     removeTask,
     toggleTask,
-    getTodayProgress,
-    history,
   } = useStore();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -58,7 +56,36 @@ export default function TodayScreen() {
   const todayTasks = tasks.filter((t) => t.date === dateStr);
   const dailyHabits = habits.filter((h) => h.frequency === 'daily');
   const weeklyHabits = habits.filter((h) => h.frequency === 'weekly');
-  const progress = getTodayProgress();
+  const monthlyHabits = habits.filter((h) => h.frequency === 'monthly');
+
+  // Date range strings for weekly/monthly done-ness checks
+  const weekStart = fmtDate(startOfWeek(selectedDate, { weekStartsOn: 1 }));
+  const weekEnd = fmtDate(endOfWeek(selectedDate, { weekStartsOn: 1 }));
+  const monthStart = fmtDate(startOfMonth(selectedDate));
+  const monthEnd = fmtDate(endOfMonth(selectedDate));
+
+  /** Returns true if the habit has at least one completion in [from, to] */
+  const isHabitDoneInRange = (habitId: string, from: string, to: string): boolean =>
+    Object.entries(history).some(([d, day]) => d >= from && d <= to && !!day[habitId]);
+
+  /** Checks completion honoring the habit's own frequency */
+  const isHabitDone = (h: Habit): boolean => {
+    if (h.frequency === 'daily') return history[dateStr]?.[h.id] ?? false;
+    if (h.frequency === 'weekly') return isHabitDoneInRange(h.id, weekStart, weekEnd);
+    return isHabitDoneInRange(h.id, monthStart, monthEnd);
+  };
+
+  // Progress rings — computed from selectedDate
+  const habitsProgress = (() => {
+    const total = habits.length;
+    if (total === 0) return 0;
+    return Math.round((habits.filter(isHabitDone).length / total) * 100);
+  })();
+  const tasksProgress = (() => {
+    const total = todayTasks.length;
+    if (total === 0) return 0;
+    return Math.round((todayTasks.filter((t) => t.completed).length / total) * 100);
+  })();
 
   // Días con al menos 1 hábito cumplido
   const completedDates = Object.entries(history)
@@ -118,7 +145,7 @@ export default function TodayScreen() {
           <View style={s.ringsRow}>
             <View style={s.ringWrapper}>
               <ProgressRing
-                progress={progress.habits}
+                progress={habitsProgress}
                 size={148}
                 strokeWidth={11}
                 label={t('habitsToday')}
@@ -126,7 +153,7 @@ export default function TodayScreen() {
             </View>
             <View style={s.ringWrapper}>
               <ProgressRing
-                progress={progress.tasks}
+                progress={tasksProgress}
                 size={148}
                 strokeWidth={11}
                 label={t('tasksToday')}
@@ -193,8 +220,11 @@ export default function TodayScreen() {
               <HabitCard
                 key={h.id}
                 habit={h}
-                done={isHabitDoneToday(h.id)}
-                onToggle={() => toggleHabitToday(h.id)}
+                done={isHabitDone(h)}
+                onToggle={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  toggleHabitForDate(h.id, dateStr);
+                }}
                 onDelete={() => removeHabit(h.id)}
                 onEdit={() => setEditItem({ type: 'habit', data: h })}
               />
@@ -212,8 +242,33 @@ export default function TodayScreen() {
               <HabitCard
                 key={h.id}
                 habit={h}
-                done={isHabitDoneToday(h.id)}
-                onToggle={() => toggleHabitToday(h.id)}
+                done={isHabitDone(h)}
+                onToggle={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  toggleHabitForDate(h.id, dateStr);
+                }}
+                onDelete={() => removeHabit(h.id)}
+                onEdit={() => setEditItem({ type: 'habit', data: h })}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Monthly habits */}
+        {monthlyHabits.length > 0 && (
+          <View style={s.section}>
+            <Text style={[s.sectionTitle, { color: theme.textSecondary, marginBottom: 10 }]}>
+              {t('monthlyHabits')}
+            </Text>
+            {monthlyHabits.map((h) => (
+              <HabitCard
+                key={h.id}
+                habit={h}
+                done={isHabitDone(h)}
+                onToggle={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  toggleHabitForDate(h.id, dateStr);
+                }}
                 onDelete={() => removeHabit(h.id)}
                 onEdit={() => setEditItem({ type: 'habit', data: h })}
               />
