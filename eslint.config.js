@@ -19,7 +19,7 @@ module.exports = [
 
   // TypeScript + React source files
   {
-    files: ['src/**/*.{ts,tsx}', 'App.tsx'],
+    files: ['src/**/*.{ts,tsx}', 'App.tsx', 'jest.setup.ts', 'jest.config.js'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

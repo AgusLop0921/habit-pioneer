@@ -18,6 +18,7 @@ export type EditModalInitialData = {
   quantity?: number;
   category?: ShopCategory;
   description?: string;
+  emoji?: string;
   frequency?: Frequency;
 };
 
@@ -46,6 +47,7 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
   // Habit fields
   const [habitName, setHabitName] = useState('');
   const [habitDesc, setHabitDesc] = useState('');
+  const [habitEmoji, setHabitEmoji] = useState('');
   const [habitFreq, setHabitFreq] = useState<Frequency>('daily');
 
   useEffect(() => {
@@ -63,6 +65,7 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
     } else if (type === 'habit') {
       setHabitName(initialData.name ?? '');
       setHabitDesc(initialData.description ?? '');
+      setHabitEmoji(initialData.emoji ?? '');
       setHabitFreq(initialData.frequency ?? 'daily');
     }
   }, [initialData, type, visible]);
@@ -79,7 +82,12 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
       onSave({ name: shopName.trim(), quantity: parseInt(shopQty) || 1, category: shopCat });
     } else if (type === 'habit') {
       if (!habitName.trim()) return;
-      onSave({ name: habitName.trim(), description: habitDesc.trim(), frequency: habitFreq });
+      onSave({
+        name: habitName.trim(),
+        description: habitDesc.trim(),
+        emoji: habitEmoji.trim() || undefined,
+        frequency: habitFreq,
+      });
     }
     onClose();
   };
@@ -211,6 +219,15 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
             onChangeText={setHabitDesc}
             placeholder={t('forms.habitDescPlaceholder')}
             placeholderTextColor={theme.textMuted}
+          />
+          <Text style={s.label}>Emoji (opcional)</Text>
+          <TextInput
+            style={s.input}
+            value={habitEmoji}
+            onChangeText={setHabitEmoji}
+            placeholder="💪🏅📚"
+            placeholderTextColor={theme.textMuted}
+            maxLength={4}
           />
           <Text style={s.label}>{t('frequency.label')}</Text>
           <View style={s.segRow}>

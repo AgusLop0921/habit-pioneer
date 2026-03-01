@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { format, isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
-import { useHabits, useTasks, useProgress } from '@/hooks';
+import { useHabits, useTasks, useProgress, useDateLocale, useHydration } from '@/hooks';
 import HabitCard from '@/components/habits/HabitCard';
 import TaskItem from '@/components/tasks/TaskItem';
 import OrangeButton from '@/components/common/OrangeButton';
@@ -47,6 +47,8 @@ export default function TodayScreen() {
   } = useTasks(selectedDate);
 
   const progress = useProgress(selectedDate);
+  const locale = useDateLocale();
+  const hydrated = useHydration();
 
   // ── UI-only state ────────────────────────────────────────────────────────────
   const [modalTask, setModalTask] = useState(false);
@@ -59,9 +61,23 @@ export default function TodayScreen() {
   const [taskPriority, setTaskPriority] = useState<Priority>('medium');
   const [habitName, setHabitName] = useState('');
   const [habitDesc, setHabitDesc] = useState('');
+  const [habitEmoji, setHabitEmoji] = useState('');
   const [habitFreq, setHabitFreq] = useState<Frequency>('daily');
 
   const isToday = isSameDay(selectedDate, new Date());
+
+  if (!hydrated) {
+    return (
+      <SafeAreaView
+        style={[
+          { flex: 1, alignItems: 'center', justifyContent: 'center' },
+          { backgroundColor: theme.bg },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.accent} />
+      </SafeAreaView>
+    );
+  }
 
   const handleAddTask = () => {
     if (!taskTitle.trim()) return;
@@ -73,9 +89,15 @@ export default function TodayScreen() {
 
   const handleAddHabit = () => {
     if (!habitName.trim()) return;
-    addHabit({ name: habitName.trim(), description: habitDesc.trim(), frequency: habitFreq });
+    addHabit({
+      name: habitName.trim(),
+      description: habitDesc.trim(),
+      emoji: habitEmoji.trim() || undefined,
+      frequency: habitFreq,
+    });
     setHabitName('');
     setHabitDesc('');
+    setHabitEmoji('');
     setHabitFreq('daily');
     setModalHabit(false);
   };
@@ -99,7 +121,7 @@ export default function TodayScreen() {
         {/* Title */}
         <View style={s.header}>
           <Text style={[s.title, { color: theme.text }]}>
-            {isToday ? t('today') : format(selectedDate, 'EEE, d MMM')}
+            {isToday ? t('today') : format(selectedDate, 'EEE, d MMM', { locale })}
           </Text>
           <View style={s.headerBtns}>
             <Pressable
@@ -313,6 +335,13 @@ export default function TodayScreen() {
           placeholder={t('forms.habitDescPlaceholder')}
           value={habitDesc}
           onChangeText={setHabitDesc}
+        />
+        <FormInput
+          label="Emoji (opcional)"
+          placeholder="💪🏅📚"
+          value={habitEmoji}
+          onChangeText={setHabitEmoji}
+          maxLength={4}
         />
         <Text style={[s.formLabel, { color: theme.textSecondary }]}>{t('frequency.label')}</Text>
         <View style={s.segRow}>

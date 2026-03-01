@@ -9,6 +9,7 @@
  */
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, PanResponder } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
 import Icon from './Icon';
 import { Radius } from '../../theme';
@@ -53,7 +54,10 @@ export default function SwipeableRow({
     lastOffset.current = toValue;
   };
 
-  const open = () => snapTo(-TOTAL_REV);
+  const open = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    snapTo(-TOTAL_REV);
+  };
   const close = () => snapTo(0);
 
   const pan = useRef(
@@ -88,9 +92,11 @@ export default function SwipeableRow({
   ).current;
 
   const handleDelete = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     snapTo(0, () => setTimeout(onDelete, 50));
   };
   const handleEdit = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     snapTo(0, () => setTimeout(onEdit, 50));
   };
 
@@ -112,7 +118,12 @@ export default function SwipeableRow({
       {/* ── Acciones: position:absolute, pegadas a la derecha ──── */}
       {/* No necesitan borderRadius propio — el padre ya los contiene */}
       <View style={s.actions}>
-        <Pressable style={[s.action, { backgroundColor: theme.swipeEdit }]} onPress={handleEdit}>
+        <Pressable
+          style={[s.action, { backgroundColor: theme.swipeEdit }]}
+          onPress={handleEdit}
+          accessibilityRole="button"
+          accessibilityLabel={editLabel}
+        >
           <Icon name="edit" size={20} color="#fff" />
           <Text style={s.actionLabel}>{editLabel}</Text>
         </Pressable>
@@ -120,6 +131,8 @@ export default function SwipeableRow({
         <Pressable
           style={[s.action, { backgroundColor: theme.swipeDelete }]}
           onPress={handleDelete}
+          accessibilityRole="button"
+          accessibilityLabel={deleteLabel}
         >
           <Icon name="delete" size={20} color="#fff" />
           <Text style={s.actionLabel}>{deleteLabel}</Text>

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { format, subDays } from 'date-fns';
 import Svg, { Polyline, Circle as SvgCircle, Line, Text as SvgText } from 'react-native-svg';
-import { useHistory } from '@/hooks';
+import { useHistory, useDateLocale } from '@/hooks';
 import { useTheme } from '@/context/ThemeContext';
 import SettingsBar from '@/components/common/SettingsBar';
 import Icon, { IconName } from '@/components/common/Icon';
@@ -25,6 +25,7 @@ export default function HistoryScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { habits, history, totalCompleted, currentStreak, longestStreak } = useHistory();
+  const locale = useDateLocale();
   const [range, setRange] = useState<Range>('7D');
   const [view, setView] = useState<View_>('trends');
 
@@ -82,9 +83,11 @@ export default function HistoryScreen() {
   // X-axis labels
   const _xLabels = (() => {
     if (range === '7D') return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    if (range === '31D') return days.filter((_, i) => i % 7 === 0).map((d) => format(d, 'd MMM'));
-    if (range === '26W') return days.filter((_, i) => i % 4 === 0).map((d) => format(d, 'd MMM'));
-    return days.map((d) => format(d, 'MMM'));
+    if (range === '31D')
+      return days.filter((_, i) => i % 7 === 0).map((d) => format(d, 'd MMM', { locale }));
+    if (range === '26W')
+      return days.filter((_, i) => i % 4 === 0).map((d) => format(d, 'd MMM', { locale }));
+    return days.map((d) => format(d, 'MMM', { locale }));
   })();
 
   return (
@@ -137,7 +140,8 @@ export default function HistoryScreen() {
                     {t('history.chartTitle')}
                   </Text>
                   <Text style={[s.chartSub, { color: theme.textSecondary }]}>
-                    {format(days[0], 'd MMM yyyy')} – {format(days[days.length - 1], 'd MMM yyyy')}
+                    {format(days[0], 'd MMM yyyy', { locale })} –{' '}
+                    {format(days[days.length - 1], 'd MMM yyyy', { locale })}
                   </Text>
                 </View>
                 <Text style={[s.chartAvg, { color: theme.textSecondary }]}>
@@ -208,7 +212,7 @@ export default function HistoryScreen() {
                     .slice(0, 7)
                     .map((d, i) => (
                       <Text key={i} style={[s.xLabel, { color: theme.textSecondary }]}>
-                        {range === '7D' ? format(d, 'EEE').slice(0, 3) : format(d, 'd')}
+                        {range === '7D' ? format(d, 'EEE', { locale }).slice(0, 3) : format(d, 'd')}
                       </Text>
                     ))}
                 </View>
@@ -345,8 +349,8 @@ export default function HistoryScreen() {
               <View>
                 <Text style={[s.chartTitle, { color: theme.text }]}>{t('history.chartTitle')}</Text>
                 <Text style={[s.chartSub, { color: theme.textSecondary }]}>
-                  {t('history.days365')} · {format(subDays(today, 364), 'd MMM yyyy')} –{' '}
-                  {format(today, 'd MMM yyyy')}
+                  {t('history.days365')} · {format(subDays(today, 364), 'd MMM yyyy', { locale })} –{' '}
+                  {format(today, 'd MMM yyyy', { locale })}
                 </Text>
               </View>
               <Text style={[s.chartAvg, { color: theme.textSecondary }]}>

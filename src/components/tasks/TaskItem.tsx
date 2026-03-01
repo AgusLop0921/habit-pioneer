@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import Animated, { FadeInDown, FadeOutLeft } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import SwipeableRow from '@/components/common/SwipeableRow';
 import CheckCircle from '@/components/common/CheckCircle';
@@ -33,36 +34,44 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
 
   return (
     <SwipeableRow onDelete={onDelete} onEdit={onEdit} deleteLabel="Borrar" editLabel="Editar">
-      <Pressable
-        style={[
-          s.item,
-          { backgroundColor: theme.surface, borderColor: theme.borderDim },
-          task.completed && s.done,
-        ]}
-        onPress={handleToggle}
+      <Animated.View
+        entering={FadeInDown.duration(250).springify()}
+        exiting={FadeOutLeft.duration(200)}
       >
-        {/* Barra lateral de prioridad */}
-        <View style={[s.priorityBar, { backgroundColor: meta.color }]} />
-
-        <CheckCircle done={task.completed} onToggle={handleToggle} />
-
-        <Text
+        <Pressable
           style={[
-            s.name,
-            { color: task.completed ? theme.textSecondary : theme.text },
-            task.completed && s.strike,
+            s.item,
+            { backgroundColor: theme.surface, borderColor: theme.borderDim },
+            task.completed && s.done,
           ]}
-          numberOfLines={1}
+          onPress={handleToggle}
+          accessibilityRole="button"
+          accessibilityLabel={`${task.completed ? 'Desmarcar' : 'Completar'} tarea ${task.title}`}
+          accessibilityState={{ checked: task.completed }}
         >
-          {task.title}
-        </Text>
+          {/* Barra lateral de prioridad */}
+          <View style={[s.priorityBar, { backgroundColor: meta.color }]} />
 
-        {/* Badge de prioridad con ícono */}
-        <View style={[s.badge, { backgroundColor: `${meta.color}1a` }]}>
-          <Icon name={meta.icon} size={13} color={meta.color} />
-          <Text style={[s.badgeText, { color: meta.color }]}>{priorityLabel}</Text>
-        </View>
-      </Pressable>
+          <CheckCircle done={task.completed} onToggle={handleToggle} />
+
+          <Text
+            style={[
+              s.name,
+              { color: task.completed ? theme.textSecondary : theme.text },
+              task.completed && s.strike,
+            ]}
+            numberOfLines={1}
+          >
+            {task.title}
+          </Text>
+
+          {/* Badge de prioridad con ícono */}
+          <View style={[s.badge, { backgroundColor: `${meta.color}1a` }]}>
+            <Icon name={meta.icon} size={13} color={meta.color} />
+            <Text style={[s.badgeText, { color: meta.color }]}>{priorityLabel}</Text>
+          </View>
+        </Pressable>
+      </Animated.View>
     </SwipeableRow>
   );
 }

@@ -4,3 +4,5 @@ export { useGoals } from './useGoals';
 export { useShopping } from './useShopping';
 export { useProgress } from './useProgress';
 export { useHistory } from './useHistory';
+export { useDateLocale } from './useDateLocale';
+export { useHydration } from './useHydration';

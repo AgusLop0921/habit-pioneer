@@ -14,6 +14,9 @@ export default function CheckCircle({ done, onToggle, size = 24 }: Props) {
   return (
     <Pressable
       onPress={onToggle}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: done }}
+      accessibilityLabel={done ? 'Marcar como pendiente' : 'Marcar como completado'}
       style={[
         s.circle,
         { width: size, height: size, borderRadius: size / 2, borderColor: theme.border },

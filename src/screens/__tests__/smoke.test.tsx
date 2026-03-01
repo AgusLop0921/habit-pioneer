@@ -12,6 +12,11 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
+// Must mock before any component import resolves it
+jest.mock('@/hooks/useDateLocale', () => ({
+  useDateLocale: () => require('date-fns/locale/en-US').enUS,
+}));
+
 const mockTheme = {
   mode: 'dark',
   bg: '#000',
@@ -94,6 +99,9 @@ jest.mock('@/hooks', () => ({
     currentStreak: 0,
     longestStreak: 0,
   }),
+  // Sprint 4 additions
+  useDateLocale: () => require('date-fns/locale/en-US').enUS,
+  useHydration: () => true,
 }));
 
 // expo-haptics is already mocked by jest-expo, but make it explicit

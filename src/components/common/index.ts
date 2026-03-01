@@ -1,4 +1,5 @@
 export { default as BottomModal } from './BottomModal';
+export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as Card } from './Card';
 export { default as CheckCircle } from './CheckCircle';
 export { default as EditModal } from './EditModal';

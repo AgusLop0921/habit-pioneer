@@ -22,6 +22,8 @@ export default function OrangeButton({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       style={({ pressed }) => [
         styles.btn,
         size === 'sm' ? styles.sm : styles.md,

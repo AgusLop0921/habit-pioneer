@@ -81,35 +81,28 @@
 
 ---
 
-## Sprint 4 — UX y polish visual
+## Sprint 4 — UX y polish visual ✅
 
 **Objetivo:** Pulir la experiencia para que se sienta producción.
 
 ### Tareas
 
-- [ ] **Error Boundaries** — Envolver cada screen con un `ErrorBoundary`:
-  ```tsx
-  // src/components/common/ErrorBoundary.tsx
-  class ErrorBoundary extends React.Component { ... }
-  ```
+- [x] **Error Boundaries** — `src/components/common/ErrorBoundary.tsx` — class component con fallback UI + botón Reintentar; envuelve `<App>` en `App.tsx`
 
-- [ ] **Loading states** — Skeleton loaders en listas vacías mientras hydrata el store
+- [x] **Loading states** — `useHydration` hook: retorna `true` cuando Zustand termina de rehidratar AsyncStorage; `TodayScreen` muestra `ActivityIndicator` mientras espera
 
-- [ ] **Haptics consistentes** — Auditar todos los `Haptics.impactAsync()` para que sean coherentes:
-  - Light: toggle check
-  - Medium: swipe action
-  - Heavy: eliminar ítem
+- [x] **Haptics consistentes** — Auditados todos los `Haptics.impactAsync()`:
+  - Light: toggle check (HabitCard, TaskItem)
+  - Medium: swipe open + swipe edit (SwipeableRow)
+  - Heavy: eliminar ítem (SwipeableRow)
 
-- [ ] **Animaciones de lista** — `Animated.FlatList` con `entering/exiting` para items (Reanimated ya instalado)
+- [x] **Animaciones de lista** — `FadeInDown.springify()` al montar + `FadeOutLeft` al desmontar items via `react-native-reanimated` en `HabitCard` y `TaskItem`; Reanimated mock en `jest.setup.ts`
 
-- [ ] **HabitCard emoji bug** — El prop `emoji` de `HabitCard` actualmente se ignora; conectar al `Habit` model o eliminarlo del componente
+- [x] **HabitCard emoji bug** — Campo `emoji?: string` agregado al tipo `Habit`; badge de HabitCard muestra emoji si existe, sino ícono de frecuencia; campo en formulario de creación/edición de hábitos
 
-- [ ] **Accesibilidad** — Agregar `accessibilityLabel`, `accessibilityRole`, `accessibilityHint` en botones y toggles principales
+- [x] **Accesibilidad** — `accessibilityRole`, `accessibilityLabel`, `accessibilityState` en: `OrangeButton`, `CheckCircle`, `SwipeableRow` (botones edit/delete), `HabitCard` (ring + info), `TaskItem`, `WeekStrip` (días)
 
-- [ ] **i18n fechas** — Usar `date-fns/locale` para formatear fechas según idioma seleccionado:
-  ```ts
-  import { es, enUS, ptBR } from 'date-fns/locale';
-  ```
+- [x] **i18n fechas** — `useDateLocale` hook (`src/hooks/useDateLocale.ts`): mapea `i18n.language` → `date-fns Locale` (es/enUS/ptBR); usado en `TodayScreen`, `HistoryScreen`, `WeekStrip` (EEEEE para letras de días)
 
 ---
 

@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import Animated, { FadeInDown, FadeOutLeft } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';
 import SwipeableRow from '@/components/common/SwipeableRow';
@@ -78,14 +79,9 @@ export default function HabitCard({
   onEdit,
 }: Props) {
   const { theme } = useTheme();
-  const scale = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.sequence([
-      Animated.timing(scale, { toValue: 0.97, duration: 70, useNativeDriver: true }),
-      Animated.timing(scale, { toValue: 1, duration: 70, useNativeDriver: true }),
-    ]).start();
     onToggle();
   };
 
@@ -101,19 +97,27 @@ export default function HabitCard({
   return (
     <SwipeableRow onDelete={onDelete} onEdit={onEdit} deleteLabel="Borrar" editLabel="Editar">
       <Animated.View
-        style={[
-          s.card,
-          { backgroundColor: theme.surface, borderColor: theme.borderDim },
-          { transform: [{ scale }] },
-        ]}
+        entering={FadeInDown.duration(250).springify()}
+        exiting={FadeOutLeft.duration(200)}
+        style={[s.card, { backgroundColor: theme.surface, borderColor: theme.borderDim }]}
       >
-        {/* Badge de frecuencia */}
+        {/* Badge de frecuencia o emoji */}
         <View style={[s.badge, { backgroundColor: done ? `${ringColor}22` : theme.surface2 }]}>
-          <Icon name={iconName} size={22} color={done ? ringColor : theme.textSecondary} />
+          {habit.emoji ? (
+            <Text style={s.emojiText}>{habit.emoji}</Text>
+          ) : (
+            <Icon name={iconName} size={22} color={done ? ringColor : theme.textSecondary} />
+          )}
         </View>
 
         {/* Info */}
-        <Pressable style={s.info} onPress={handlePress}>
+        <Pressable
+          style={s.info}
+          onPress={handlePress}
+          accessibilityRole="button"
+          accessibilityLabel={`${done ? 'Desmarcar' : 'Completar'} hábito ${habit.name}`}
+          accessibilityState={{ checked: done }}
+        >
           <Text
             style={[s.name, { color: done ? theme.textSecondary : theme.text }, done && s.strike]}
             numberOfLines={1}
@@ -133,11 +137,21 @@ export default function HabitCard({
 
         {/* Ring / counter */}
         {hasCounter ? (
-          <Pressable onPress={onIncrement} style={s.ringWrap}>
+          <Pressable
+            onPress={onIncrement}
+            style={s.ringWrap}
+            accessibilityRole="button"
+            accessibilityLabel={`Incrementar ${habit.name}: ${count} de ${targetCount}`}
+          >
             <MiniRing progress={progress} color={ringColor} bg={theme.ringBg} done={done} />
           </Pressable>
         ) : (
-          <Pressable onPress={handlePress} style={s.ringWrap}>
+          <Pressable
+            onPress={handlePress}
+            style={s.ringWrap}
+            accessibilityRole="button"
+            accessibilityLabel={done ? `Desmarcar ${habit.name}` : `Completar ${habit.name}`}
+          >
             <MiniRing progress={progress} color={ringColor} bg={theme.ringBg} done={done} />
           </Pressable>
         )}
@@ -167,4 +181,5 @@ const s = StyleSheet.create({
   strike: { textDecorationLine: 'line-through' },
   desc: { fontSize: 12, marginTop: 2 },
   ringWrap: { padding: 4 },
+  emojiText: { fontSize: 22 },
 });

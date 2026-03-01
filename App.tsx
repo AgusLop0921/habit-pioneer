@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 import './src/i18n';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import ErrorBoundary from './src/components/common/ErrorBoundary';
 import AppSplashScreen from './src/screens/SplashScreen';
 import MotivationalScreen from './src/screens/MotivationalScreen';
 import MainNavigator from './src/screens/MainNavigator';
@@ -31,9 +32,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
