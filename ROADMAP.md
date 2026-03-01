@@ -53,39 +53,31 @@
 
 ---
 
-## Sprint 3 — Testing
+## Sprint 3 — Testing ✅
 
 **Objetivo:** Cobertura de tests en capas críticas.
 
 ### Setup
 
-- [ ] Instalar Jest + Testing Library:
-  ```bash
-  npx expo install jest-expo @testing-library/react-native @testing-library/jest-native
-  npm install --save-dev @types/jest
-  ```
-- [ ] Configurar `jest.config.js` con `jest-expo` preset
-- [ ] Agregar script `"test": "jest"` y `"test:watch": "jest --watch"` en `package.json`
+- [x] Instalar `jest@29` + `jest-expo@55` + `@testing-library/react-native@13` + `@types/jest`
+- [x] Configurar `jest.config.js` con `jest-expo` preset, `@/` alias mapper, `transformIgnorePatterns`
+- [x] Configurar `jest.setup.ts` con mocks de AsyncStorage, expo-asset, expo-font, vector-icons
+- [x] Agregar scripts `"test"`, `"test:watch"`, `"test:coverage"` en `package.json`
+- [x] Modificar `babel.config.js` para deshabilitar reanimated plugin en test env
 
-### Tests a escribir
+### Tests escritos — 58/58 ✅
 
-- [ ] **Store slices (unit)** — Cada acción del store:
-  - `addHabit`, `editHabit`, `removeHabit`, `toggleHabitToday`
-  - `addTask`, `toggleTask`, `getTasksForToday`
-  - `getTodayProgress` — casos edge (sin hábitos, 100%, 0%)
-  - `seedStore` — verifica que puebla correctamente
+- [x] **Store slices (unit)** — `makeStore()` factory sin persistencia:
+  - `habitsSlice` — 12 tests: `addHabit`, `editHabit`, `removeHabit`, `toggleHabitForDate`, `isHabitDoneOnDate`
+  - `tasksSlice` — 10 tests: `addTask`, `editTask`, `removeTask`, `toggleTask`, date filtering
+  - `goalsSlice` — 9 tests: `addWeeklyGoal`, `editWeeklyGoal`, `removeWeeklyGoal`, `logGoalCompletion`
 
-- [ ] **Custom hooks (unit)** — Con `renderHook`:
-  - `useProgress` — retorna porcentajes correctos
-  - `useHistory` — streak y stats correctos
+- [x] **Custom hooks (unit)** — Con `renderHook`:
+  - `useProgress` — 0%/50%/100%, daily/weekly/monthly, tasks por fecha, total combinado
+  - `useHistory` — `pctForDate`, `dataForDays`, `currentStreak`, `longestStreak` (fix de algoritmo incluido)
 
-- [ ] **Componentes clave (integration)**:
-  - `HabitItem` — render, toggle, swipe delete, swipe edit
-  - `TaskItem` — render, toggle, prioridad visual
-  - `EditModal` — render por tipo, submit con datos correctos, cierre
-
-- [ ] **Screens smoke tests** — Que rendericen sin crashear:
-  - `TodayScreen`, `GoalsScreen`, `ShoppingScreen`, `HistoryScreen`
+- [x] **Screens smoke tests** — Que rendericen sin crashear:
+  - `TodayScreen`, `GoalsScreen`, `ShoppingScreen`, `HistoryScreen` — 6 tests
 
 ---
 

@@ -33,20 +33,24 @@ export function useHistory() {
     0
   );
 
-  // Current and longest streak (consecutive days with ≥1 completion)
+  // Current and longest streak (consecutive days with ≥1 completion).
+  // Walk backwards from today: currentStreak is finalized once the first gap is
+  // found; we keep tracking tempStreak to compute longestStreak.
   let longestStreak = 0;
   let currentStreak = 0;
   let tempStreak = 0;
+  let currentStreakFinalized = false;
+
   for (let i = 0; i < 365; i++) {
     const dateStr = getDateStr(subDays(today, i));
     const dayHistory = history[dateStr] ?? {};
     const done = Object.values(dayHistory).filter(Boolean).length;
     if (done > 0) {
       tempStreak++;
-      if (i === 0 || currentStreak > 0) currentStreak = tempStreak;
+      if (!currentStreakFinalized) currentStreak = tempStreak;
       longestStreak = Math.max(longestStreak, tempStreak);
     } else {
-      if (i === 0) currentStreak = 0;
+      currentStreakFinalized = true; // gap found — currentStreak is now locked
       tempStreak = 0;
     }
   }

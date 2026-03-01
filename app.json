@@ -34,7 +34,8 @@
           "backgroundColor": "#0a0a0a",
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }
