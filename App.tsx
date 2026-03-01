@@ -1,20 +1,42 @@
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import './src/i18n';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import AppSplashScreen from './src/screens/SplashScreen';
+import MotivationalScreen from './src/screens/MotivationalScreen';
+import MainNavigator from './src/screens/MainNavigator';
 
-export default function App() {
+type Phase = 'splash' | 'motivational' | 'app';
+
+function AppContent() {
+  const [phase, setPhase] = useState<Phase>('splash');
+  const { isDark } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      {phase === 'splash' && (
+        <AppSplashScreen onFinish={() => setPhase('motivational')} />
+      )}
+      {phase === 'motivational' && (
+        <MotivationalScreen onContinue={() => setPhase('app')} />
+      )}
+      {phase === 'app' && (
+        <MainNavigator />
+      )}
     </View>
   );
 }
 
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  container: { flex: 1 },
 });
