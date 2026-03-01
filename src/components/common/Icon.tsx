@@ -74,6 +74,10 @@ const ICON_MAP = {
   archive: { set: 'ion', name: 'archive-outline' },
   trend: { set: 'ion', name: 'trending-up-outline' },
   list: { set: 'ion', name: 'list-outline' },
+
+  // Sleep feature
+  'repeat-outline': { set: 'ion', name: 'repeat-outline' },
+  'alert-circle-outline': { set: 'ion', name: 'alert-circle-outline' },
 } as const;
 
 export type IconName = keyof typeof ICON_MAP;

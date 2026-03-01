@@ -50,3 +50,29 @@ export type RootTabParamList = {
   Goals: undefined;
   Shopping: undefined;
 };
+
+// ── Sleep Hygiene ──────────────────────────────────────────
+export interface SleepChecklistItem {
+  id: string;
+  label: string;
+  description: string;
+  category: 'before' | 'environment' | 'behavior' | 'crisis';
+  isKeyItem: boolean;
+}
+
+export interface SleepLog {
+  date: string;
+  checklistDone: string[];
+  hoursSlept: number;
+  quality: number;
+  wakeUps: number;
+  bedtime: string;
+  wakeTime: string;
+  notes?: string;
+}
+
+export interface SleepState {
+  isEnrolled: boolean;
+  onboardingDone: boolean;
+  logs: Record<string, SleepLog>;
+}

@@ -1,0 +1,61 @@
+name: CD — EAS Preview Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile
+        required: true
+        default: preview
+        type: choice
+        options: [development, preview, production]
+
+jobs:
+  build:
+    name: EAS Build (${{ inputs.profile || 'preview' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run CI checks first
+        run: |
+          npm run typecheck
+          npm run lint
+          npm test -- --no-coverage --ci
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS Build
+        run: eas build --platform all --profile ${{ inputs.profile || 'preview' }} --non-interactive
+
+  # Uncomment once builds are approved and stores are configured:
+  # submit:
+  #   name: EAS Submit (production only)
+  #   needs: build
+  #   if: inputs.profile == 'production'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: expo/expo-github-action@v8
+  #       with:
+  #         eas-version: latest
+  #         token: ${{ secrets.EXPO_TOKEN }}
+  #     - run: eas submit --platform all --latest

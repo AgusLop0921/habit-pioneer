@@ -106,36 +106,35 @@
 
 ---
 
-## Sprint 5 — Infraestructura de build y distribución
+## Sprint 5 — Infraestructura de build y distribución ✅
 
 **Objetivo:** CI/CD listo para TestFlight y Google Play Internal Testing.
 
 ### Tareas
 
-- [ ] **EAS Build** — Configurar `eas.json`:
-  ```json
-  {
-    "build": {
-      "development": { "developmentClient": true },
-      "preview": { "distribution": "internal" },
-      "production": {}
-    }
-  }
-  ```
+- [x] **EAS Build** — `eas.json` con perfiles development / preview / production + submit config
 
-- [ ] **GitHub Actions CI** — `.github/workflows/ci.yml`:
-  - Trigger: PR → `main`
-  - Steps: `npm ci` → `typecheck` → `lint` → `test`
+- [x] **GitHub Actions CI** — `.github/workflows/ci.yml`:
+  - Trigger: PR → `main` y push → `main`
+  - Steps: `npm ci --legacy-peer-deps` → `typecheck` → `lint` → `test --ci`
 
-- [ ] **GitHub Actions CD** — `.github/workflows/deploy.yml`:
-  - Trigger: push → `main`
-  - Steps: EAS Build preview → EAS Submit
+- [x] **GitHub Actions CD** — `.github/workflows/deploy.yml`:
+  - Trigger: push → `main` + `workflow_dispatch` (profile: development/preview/production)
+  - Steps: CI checks → EAS Build via `expo/expo-github-action@v8`
 
-- [ ] **Versioning automático** — `standard-version` o `changesets` para CHANGELOG + tags
+- [x] **Versioning automático** — `release-it` + `@release-it/conventional-changelog`:
+  - Scripts: `npm run release` / `npm run release:dry`
+  - Genera `CHANGELOG.md` con secciones Features / Bug Fixes / Refactoring
 
-- [ ] **Sentry** — `@sentry/react-native` para crash reporting en producción
+- [x] **Tech debt** — `ThemedText`: usa `useTheme()` en lugar de `Colors = DarkTheme` hardcodeado
 
-- [ ] **Analytics** — Considerar Mixpanel o PostHog para entender uso real
+- [x] **package.json** — `jest-expo` movido a devDeps; deps de test registradas; scripts release
+
+- [x] **Lint clean** — 0 errores en sleep feature (MainNavigator, SleepScreen, SleepLogModal, SleepOnboarding)
+
+- [ ] **Sentry** — `@sentry/react-native` para crash reporting en producción *(requiere cuenta + setup nativo)*
+
+- [ ] **Analytics** — Mixpanel o PostHog *(requiere cuenta)*
 
 ---
 
