@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/store';
+import { useShopping } from '@/hooks';
 import { useTheme } from '@/context/ThemeContext';
 import ShoppingItemComponent from '@/components/shopping/ShoppingItem';
 import OrangeButton from '@/components/common/OrangeButton';
@@ -26,11 +26,12 @@ export default function ShoppingScreen() {
   const { theme } = useTheme();
   const {
     shoppingList,
+    grouped,
     addShoppingItem,
     editShoppingItem,
     removeShoppingItem,
     toggleShoppingItem,
-  } = useStore();
+  } = useShopping();
   const [modal, setModal] = useState(false);
   const [name, setName] = useState('');
   const [qty, setQty] = useState('1');
@@ -45,15 +46,6 @@ export default function ShoppingScreen() {
     setCat('general');
     setModal(false);
   };
-
-  const grouped = CATS.reduce(
-    (acc, c) => {
-      const items = shoppingList.filter((i) => i.category === c.key);
-      if (items.length) acc[c.key] = items;
-      return acc;
-    },
-    {} as Record<ShopCategory, typeof shoppingList>
-  );
 
   const s = makeStyles(theme);
 

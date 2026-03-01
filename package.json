@@ -12,7 +12,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepare-run-phone": "npx expo prebuild --clean && open ios/*.xcworkspace"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [

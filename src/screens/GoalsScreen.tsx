@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/store';
+import { useGoals } from '@/hooks';
 import { useTheme } from '@/context/ThemeContext';
 import GoalItem from '@/components/goals/GoalItem';
 import OrangeButton from '@/components/common/OrangeButton';
@@ -18,7 +18,7 @@ export default function GoalsScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { weeklyGoals, addWeeklyGoal, editWeeklyGoal, removeWeeklyGoal, logGoalCompletion } =
-    useStore();
+    useGoals();
   const [modal, setModal] = useState(false);
   const [title, setTitle] = useState('');
   const [target, setTarget] = useState('3');

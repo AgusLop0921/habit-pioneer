@@ -19,42 +19,37 @@
 
 ---
 
-## Sprint 2 — Arquitectura de store y separación de concerns
+## Sprint 2 — Arquitectura de store y separación de concerns ✅ COMPLETADO
 
 **Objetivo:** Romper el god-store monolítico, separar lógica de negocio de las pantallas.
 
 ### Tareas
 
-- [ ] **Slices independientes** — Dividir `src/store/index.ts` en slices:
-  - `src/store/slices/habitsSlice.ts`
-  - `src/store/slices/tasksSlice.ts`
-  - `src/store/slices/goalsSlice.ts`
-  - `src/store/slices/shoppingSlice.ts`
-  - `src/store/slices/settingsSlice.ts`
-  - `src/store/index.ts` → re-exporta todo combinado con `zustand/combine`
-
-- [ ] **Custom hooks por dominio** — Sacar la lógica de las screens:
-  - `src/hooks/useHabits.ts` — CRUD + toggle + progreso
-  - `src/hooks/useTasks.ts` — CRUD + toggle + filtro por fecha
-  - `src/hooks/useGoals.ts` — CRUD + logCompletion
-  - `src/hooks/useShopping.ts` — CRUD + toggle + agrupación por categoría
-  - `src/hooks/useProgress.ts` — `getTodayProgress()` extraído
-  - `src/hooks/useHistory.ts` — stats, streak, heatmap data
-
-- [ ] **Barrel exports** — Agregar `index.ts` en cada carpeta de `src/`:
-  ```
-  src/components/common/index.ts
-  src/components/habits/index.ts
-  src/components/tasks/index.ts
-  src/components/goals/index.ts
-  src/components/shopping/index.ts
-  src/hooks/index.ts
-  ```
-
-- [ ] **Eliminar lógica de negocio de screens** — Las screens solo deben:
-  1. Llamar hooks
-  2. Renderizar JSX
-  3. Manejar estado UI local (modales, inputs)
+- ✅ **`src/store/types.ts`** — Interfaces centralizadas (`HabitsSlice`, `TasksSlice`, `GoalsSlice`, `ShoppingSlice`, `SettingsSlice`, `StatsSlice`) + `type Store = intersection`. Evita dependencias circulares.
+- ✅ **Slices independientes** — `src/store/slices/`:
+  - `habitsSlice.ts` — habits[], history[], CRUD, `toggleHabitForDate`, `isHabitDoneOnDate`
+  - `tasksSlice.ts` — tasks[], CRUD, `toggleTask`
+  - `goalsSlice.ts` — weeklyGoals[], CRUD, `logGoalCompletion`, cálculo `weekStart`
+  - `shoppingSlice.ts` — shoppingList[], CRUD, `toggleShoppingItem`
+  - `settingsSlice.ts` — language, themeMode, setters
+  - `statsSlice.ts` — `getProgressForDate(date)` lee habits/tasks/history via `get()`
+  - `index.ts` — barrel re-export
+- ✅ **`src/store/index.ts`** reescrito como thin combiner: `create<Store>()(persist((...a) => ({...slice1(...a), ...})))` con `StateCreator<Store, [], [], SliceType>`
+- ✅ **Custom hooks por dominio** — `src/hooks/`:
+  - `useHabits(selectedDate)` — habits por frecuencia, `isHabitDone`, `completedDates`, CRUD, `toggleHabit`
+  - `useTasks(selectedDate)` — `tasksForDate`, conteos, `addTask(title, priority)`, CRUD
+  - `useGoals()` — weeklyGoals + CRUD completo
+  - `useShopping()` — lista + `grouped` por categoría, conteos, CRUD
+  - `useProgress(selectedDate)` — `{habits, tasks, total}` como porcentajes, respeta frecuencia
+  - `useHistory()` — `pctForDate`, `dataForDays(n)`, `totalCompleted`, `currentStreak`, `longestStreak`
+  - `index.ts` — barrel
+- ✅ **Barrel exports** — `index.ts` en cada subcarpeta de `src/components/` (common, habits, tasks, goals, shopping) + `src/hooks/`
+- ✅ **Screens refactorizadas** — Solo llaman hooks, renderizan JSX, manejan UI local:
+  - `TodayScreen` → `useHabits + useTasks + useProgress`
+  - `GoalsScreen` → `useGoals`
+  - `ShoppingScreen` → `useShopping`
+  - `HistoryScreen` → `useHistory`
+- ✅ **0 errores TS · 0 errores ESLint**
 
 ---
 

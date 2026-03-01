@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { format, isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
-import { useStore } from '@/store';
 import { useTheme } from '@/context/ThemeContext';
+import { useHabits, useTasks, useProgress } from '@/hooks';
 import HabitCard from '@/components/habits/HabitCard';
 import TaskItem from '@/components/tasks/TaskItem';
 import OrangeButton from '@/components/common/OrangeButton';
@@ -19,26 +19,36 @@ import { Spacing, Radius, type AppTheme } from '@/theme';
 import type { Task, Habit } from '@/types';
 import { Priority, Frequency } from '@/types';
 
-const fmtDate = (d: Date) => format(d, 'yyyy-MM-dd');
-
 export default function TodayScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // ── Domain hooks ────────────────────────────────────────────────────────────
   const {
-    habits,
-    tasks,
-    history,
-    toggleHabitForDate,
+    dailyHabits,
+    weeklyHabits,
+    monthlyHabits,
+    isHabitDone,
+    completedDates,
     addHabit,
     editHabit,
     removeHabit,
-    addTask,
+    toggleHabit,
+  } = useHabits(selectedDate);
+
+  const {
+    tasks: todayTasks,
+    addTask: addTaskForDate,
     editTask,
     removeTask,
     toggleTask,
-  } = useStore();
+  } = useTasks(selectedDate);
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const progress = useProgress(selectedDate);
+
+  // ── UI-only state ────────────────────────────────────────────────────────────
   const [modalTask, setModalTask] = useState(false);
   const [modalHabit, setModalHabit] = useState(false);
   const [editItem, setEditItem] = useState<
@@ -52,49 +62,10 @@ export default function TodayScreen() {
   const [habitFreq, setHabitFreq] = useState<Frequency>('daily');
 
   const isToday = isSameDay(selectedDate, new Date());
-  const dateStr = fmtDate(selectedDate);
-  const todayTasks = tasks.filter((t) => t.date === dateStr);
-  const dailyHabits = habits.filter((h) => h.frequency === 'daily');
-  const weeklyHabits = habits.filter((h) => h.frequency === 'weekly');
-  const monthlyHabits = habits.filter((h) => h.frequency === 'monthly');
-
-  // Date range strings for weekly/monthly done-ness checks
-  const weekStart = fmtDate(startOfWeek(selectedDate, { weekStartsOn: 1 }));
-  const weekEnd = fmtDate(endOfWeek(selectedDate, { weekStartsOn: 1 }));
-  const monthStart = fmtDate(startOfMonth(selectedDate));
-  const monthEnd = fmtDate(endOfMonth(selectedDate));
-
-  /** Returns true if the habit has at least one completion in [from, to] */
-  const isHabitDoneInRange = (habitId: string, from: string, to: string): boolean =>
-    Object.entries(history).some(([d, day]) => d >= from && d <= to && !!day[habitId]);
-
-  /** Checks completion honoring the habit's own frequency */
-  const isHabitDone = (h: Habit): boolean => {
-    if (h.frequency === 'daily') return history[dateStr]?.[h.id] ?? false;
-    if (h.frequency === 'weekly') return isHabitDoneInRange(h.id, weekStart, weekEnd);
-    return isHabitDoneInRange(h.id, monthStart, monthEnd);
-  };
-
-  // Progress rings — computed from selectedDate
-  const habitsProgress = (() => {
-    const total = habits.length;
-    if (total === 0) return 0;
-    return Math.round((habits.filter(isHabitDone).length / total) * 100);
-  })();
-  const tasksProgress = (() => {
-    const total = todayTasks.length;
-    if (total === 0) return 0;
-    return Math.round((todayTasks.filter((t) => t.completed).length / total) * 100);
-  })();
-
-  // Días con al menos 1 hábito cumplido
-  const completedDates = Object.entries(history)
-    .filter(([, day]) => Object.values(day).some(Boolean))
-    .map(([date]) => date);
 
   const handleAddTask = () => {
     if (!taskTitle.trim()) return;
-    addTask({ title: taskTitle.trim(), priority: taskPriority, date: dateStr });
+    addTaskForDate(taskTitle.trim(), taskPriority);
     setTaskTitle('');
     setTaskPriority('medium');
     setModalTask(false);
@@ -145,7 +116,7 @@ export default function TodayScreen() {
           <View style={s.ringsRow}>
             <View style={s.ringWrapper}>
               <ProgressRing
-                progress={habitsProgress}
+                progress={progress.habits}
                 size={148}
                 strokeWidth={11}
                 label={t('habitsToday')}
@@ -153,7 +124,7 @@ export default function TodayScreen() {
             </View>
             <View style={s.ringWrapper}>
               <ProgressRing
-                progress={tasksProgress}
+                progress={progress.tasks}
                 size={148}
                 strokeWidth={11}
                 label={t('tasksToday')}
@@ -223,7 +194,7 @@ export default function TodayScreen() {
                 done={isHabitDone(h)}
                 onToggle={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  toggleHabitForDate(h.id, dateStr);
+                  toggleHabit(h.id);
                 }}
                 onDelete={() => removeHabit(h.id)}
                 onEdit={() => setEditItem({ type: 'habit', data: h })}
@@ -245,7 +216,7 @@ export default function TodayScreen() {
                 done={isHabitDone(h)}
                 onToggle={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  toggleHabitForDate(h.id, dateStr);
+                  toggleHabit(h.id);
                 }}
                 onDelete={() => removeHabit(h.id)}
                 onEdit={() => setEditItem({ type: 'habit', data: h })}
@@ -267,7 +238,7 @@ export default function TodayScreen() {
                 done={isHabitDone(h)}
                 onToggle={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  toggleHabitForDate(h.id, dateStr);
+                  toggleHabit(h.id);
                 }}
                 onDelete={() => removeHabit(h.id)}
                 onEdit={() => setEditItem({ type: 'habit', data: h })}

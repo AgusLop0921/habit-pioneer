@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { format, subDays } from 'date-fns';
 import Svg, { Polyline, Circle as SvgCircle, Line, Text as SvgText } from 'react-native-svg';
-import { useStore } from '@/store';
+import { useHistory } from '@/hooks';
 import { useTheme } from '@/context/ThemeContext';
 import SettingsBar from '@/components/common/SettingsBar';
 import Icon, { IconName } from '@/components/common/Icon';
@@ -24,7 +24,7 @@ function getDateStr(d: Date) {
 export default function HistoryScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { habits, history } = useStore();
+  const { habits, history, totalCompleted, currentStreak, longestStreak } = useHistory();
   const [range, setRange] = useState<Range>('7D');
   const [view, setView] = useState<View_>('trends');
 
@@ -62,28 +62,6 @@ export default function HistoryScreen() {
       return `${x},${y}`;
     })
     .join(' ');
-
-  // ── Stats ──
-  const totalCompleted = Object.values(history).reduce((acc, day) => {
-    return acc + Object.values(day).filter(Boolean).length;
-  }, 0);
-
-  let longestStreak = 0,
-    currentStreak = 0,
-    tempStreak = 0;
-  for (let i = 0; i < 365; i++) {
-    const dateStr = getDateStr(subDays(today, i));
-    const dayHistory = history[dateStr] ?? {};
-    const done = Object.values(dayHistory).filter(Boolean).length;
-    if (done > 0) {
-      tempStreak++;
-      if (i === 0 || currentStreak > 0) currentStreak = tempStreak;
-      longestStreak = Math.max(longestStreak, tempStreak);
-    } else {
-      if (i === 0) currentStreak = 0;
-      tempStreak = 0;
-    }
-  }
 
   // ── Heatmap (365 days) ──
   const heatmapDays = Array.from({ length: 365 }, (_, i) => subDays(today, 364 - i));
