@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  TextInput,
-  Modal,
-  DimensionValue,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Modal, DimensionValue } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useSleepStore } from '../../store/sleepStore';
 import { useTheme } from '../../context/ThemeContext';
 import { SLEEP_CHECKLIST, CATEGORY_META } from './sleepChecklist';
@@ -20,6 +12,68 @@ import type { IconName } from '../../components/common/Icon';
 
 const INDIGO = '#6366f1';
 const CATEGORIES = ['before', 'environment', 'behavior', 'crisis'] as const;
+
+function calcSleepHours(bedtime: string, wakeTime: string): number {
+  const [bh, bm] = bedtime.split(':').map(Number);
+  const [wh, wm] = wakeTime.split(':').map(Number);
+  const bedMin = bh * 60 + bm;
+  let wakeMin = wh * 60 + wm;
+  if (wakeMin <= bedMin) wakeMin += 24 * 60;
+  return Math.round(((wakeMin - bedMin) / 60) * 10) / 10;
+}
+
+function sleepColor(hours: number): string {
+  if (hours >= 7 && hours <= 9) return '#22c55e'; // green – optimal
+  if (hours >= 6 && hours < 7) return '#f59e0b'; // yellow – a bit short
+  if (hours > 9 && hours <= 10) return '#f59e0b'; // yellow – a bit long
+  return '#ef4444'; // red – too short or too long
+}
+
+function sleepLabelKey(hours: number): string {
+  if (hours >= 7 && hours <= 9) return 'sleep.log.hoursOptimal';
+  if (hours >= 6 && hours < 7) return 'sleep.log.hoursShort';
+  if (hours > 9 && hours <= 10) return 'sleep.log.hoursLong';
+  if (hours < 6) return 'sleep.log.hoursInsufficient';
+  return 'sleep.log.hoursTooLong';
+}
+
+function SleepHoursCard({
+  hours,
+  theme,
+  t,
+}: {
+  hours: number;
+  theme: AppTheme;
+  t: (key: string) => string;
+}) {
+  const color = sleepColor(hours);
+  return (
+    <View style={[shc.card, { backgroundColor: `${color}15`, borderColor: `${color}55` }]}>
+      <Text style={[shc.big, { color }]}>{hours % 1 === 0 ? `${hours}h` : `${hours}h`}</Text>
+      <View style={shc.right}>
+        <Text style={[shc.label, { color }]}>{t(sleepLabelKey(hours))}</Text>
+        <Text style={[shc.sub, { color: theme.textSecondary }]}>{t('sleep.log.hoursCalc')}</Text>
+      </View>
+    </View>
+  );
+}
+
+const shc = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  big: { fontSize: 36, fontWeight: '800', letterSpacing: -1 },
+  right: { flex: 1 },
+  label: { fontSize: 15, fontWeight: '700' },
+  sub: { fontSize: 12, marginTop: 2 },
+});
 
 function TimePicker({
   value,
@@ -98,36 +152,37 @@ export default function SleepLogModal({
   onClose: () => void;
 }) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { getLog, saveLog } = useSleepStore();
 
   const [checked, setChecked] = useState<string[]>([]);
-  const [hours, setHours] = useState('');
   const [quality, setQuality] = useState(0);
   const [wakeUps, setWakeUps] = useState(0);
   const [bedtime, setBedtime] = useState('23:00');
   const [wakeTime, setWakeTime] = useState('07:00');
-  const [tab, setTab] = useState<'checklist' | 'metrics'>('checklist');
+  const [step, setStep] = useState<1 | 2>(1);
 
   useEffect(() => {
     if (visible) {
       const log = getLog(date);
       setChecked(log?.checklistDone ?? []);
-      setHours(log?.hoursSlept ? String(log.hoursSlept) : '');
       setQuality(log?.quality ?? 0);
       setWakeUps(log?.wakeUps ?? 0);
       setBedtime(log?.bedtime || '23:00');
       setWakeTime(log?.wakeTime || '07:00');
-      setTab('checklist');
+      setStep(1);
     }
-  }, [visible, date]);
+  }, [visible, date, getLog]);
 
   const toggle = (id: string) =>
     setChecked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
 
+  const computedHours = calcSleepHours(bedtime, wakeTime);
+
   const save = () => {
     saveLog(date, {
       checklistDone: checked,
-      hoursSlept: parseFloat(hours) || 0,
+      hoursSlept: computedHours,
       quality,
       wakeUps,
       bedtime,
@@ -153,48 +208,35 @@ export default function SleepLogModal({
             <Icon name="close" size={20} color={theme.textSecondary} />
           </Pressable>
           <View style={s.headerCenter}>
-            <Text style={[s.headerTitle, { color: theme.text }]}>Registro de sueño</Text>
+            <Text style={[s.headerTitle, { color: theme.text }]}>{t('sleep.log.title')}</Text>
             <Text style={[s.headerSub, { color: theme.textSecondary }]}>{date}</Text>
           </View>
-          <Pressable style={[s.saveBtn, { backgroundColor: INDIGO }]} onPress={save}>
-            <Text style={s.saveBtnTxt}>Guardar</Text>
-          </Pressable>
+          <View style={s.stepDots}>
+            {[1, 2].map((n) => (
+              <View
+                key={n}
+                style={[s.stepDot, { backgroundColor: n <= step ? INDIGO : theme.borderDim }]}
+              />
+            ))}
+          </View>
         </View>
 
-        {/* Tabs */}
-        <View style={[s.tabs, { backgroundColor: theme.surface }]}>
-          {(['checklist', 'metrics'] as const).map((t) => (
-            <Pressable
-              key={t}
-              style={[s.tabItem, tab === t && { backgroundColor: theme.surface2 }]}
-              onPress={() => setTab(t)}
-            >
-              <Icon
-                name={t === 'checklist' ? 'tasks' : 'chart'}
-                size={15}
-                color={tab === t ? INDIGO : theme.textSecondary}
-              />
-              <Text
-                style={[
-                  s.tabText,
-                  { color: tab === t ? INDIGO : theme.textSecondary },
-                  tab === t && { fontWeight: '700' },
-                ]}
-              >
-                {t === 'checklist' ? 'Checklist' : 'Métricas'}
-              </Text>
-            </Pressable>
-          ))}
+        {/* Step label */}
+        <View style={[s.stepHeader, { backgroundColor: theme.surface }]}>
+          <Icon name={step === 1 ? 'tasks' : 'chart'} size={15} color={INDIGO} />
+          <Text style={[s.stepLabel, { color: INDIGO }]}>
+            {step === 1 ? t('sleep.log.step1Label') : t('sleep.log.step2Label')}
+          </Text>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          {tab === 'checklist' && (
+          {step === 1 && (
             <View style={s.section}>
               {/* Barra de cumplimiento */}
               <View style={[s.compCard, { backgroundColor: `${INDIGO}10` }]}>
                 <View style={s.compRow}>
                   <Text style={[s.compLabel, { color: theme.textSecondary }]}>
-                    Cumplimiento de esta noche
+                    {t('sleep.log.complianceTitle')}
                   </Text>
                   <Text style={[s.compPct, { color: INDIGO }]}>{compliance}%</Text>
                 </View>
@@ -207,7 +249,10 @@ export default function SleepLogModal({
                   />
                 </View>
                 <Text style={[s.compCount, { color: theme.textSecondary }]}>
-                  {checked.length} de {SLEEP_CHECKLIST.length} hábitos
+                  {t('sleep.log.habitsCount', {
+                    done: checked.length,
+                    total: SLEEP_CHECKLIST.length,
+                  })}
                 </Text>
               </View>
 
@@ -219,7 +264,9 @@ export default function SleepLogModal({
                   <View key={cat} style={s.catBlock}>
                     <View style={[s.catHeader, { borderLeftColor: meta.color }]}>
                       <Icon name={meta.icon as IconName} size={13} color={meta.color} />
-                      <Text style={[s.catTitle, { color: theme.textSecondary }]}>{meta.label}</Text>
+                      <Text style={[s.catTitle, { color: theme.textSecondary }]}>
+                        {t(`sleep.checklist.categories.${cat}`)}
+                      </Text>
                     </View>
                     {items.map((item) => {
                       const done = checked.includes(item.id);
@@ -246,7 +293,9 @@ export default function SleepLogModal({
                             <View style={s.itemLabelRow}>
                               {item.isKeyItem && (
                                 <View style={[s.keyBadge, { backgroundColor: `${INDIGO}18` }]}>
-                                  <Text style={[s.keyBadgeText, { color: INDIGO }]}>★ clave</Text>
+                                  <Text style={[s.keyBadgeText, { color: INDIGO }]}>
+                                    {t('sleep.log.keyBadge')}
+                                  </Text>
                                 </View>
                               )}
                               <Text
@@ -256,11 +305,11 @@ export default function SleepLogModal({
                                   done && { textDecorationLine: 'line-through' },
                                 ]}
                               >
-                                {item.label}
+                                {t(`sleep.checklist.${item.id}.label`)}
                               </Text>
                             </View>
                             <Text style={[s.itemDesc, { color: theme.textSecondary }]}>
-                              {item.description}
+                              {t(`sleep.checklist.${item.id}.desc`)}
                             </Text>
                           </View>
                         </Pressable>
@@ -272,58 +321,26 @@ export default function SleepLogModal({
             </View>
           )}
 
-          {tab === 'metrics' && (
+          {step === 2 && (
             <View style={s.section}>
-              <Text style={[s.metricTitle, { color: theme.text }]}>Horarios</Text>
+              <Text style={[s.metricTitle, { color: theme.text }]}>{t('sleep.log.schedules')}</Text>
               <View style={s.timeRow}>
-                <TimePicker value={bedtime} onChange={setBedtime} label="Me acosté" />
-                <TimePicker value={wakeTime} onChange={setWakeTime} label="Me levanté" />
+                <TimePicker value={bedtime} onChange={setBedtime} label={t('sleep.log.bedtime')} />
+                <TimePicker
+                  value={wakeTime}
+                  onChange={setWakeTime}
+                  label={t('sleep.log.wakeTime')}
+                />
               </View>
 
-              <Text style={[s.metricTitle, { color: theme.text }]}>Horas dormidas</Text>
-              <View style={s.chipsRow}>
-                {[4, 5, 6, 7, 8, 9, 10].map((h) => (
-                  <Pressable
-                    key={h}
-                    style={[
-                      s.chip,
-                      { backgroundColor: theme.surface2, borderColor: theme.borderDim },
-                      hours === String(h) && {
-                        backgroundColor: `${INDIGO}15`,
-                        borderColor: INDIGO,
-                      },
-                    ]}
-                    onPress={() => setHours(String(h))}
-                  >
-                    <Text
-                      style={[
-                        s.chipText,
-                        { color: hours === String(h) ? INDIGO : theme.textSecondary },
-                        hours === String(h) && { fontWeight: '700' },
-                      ]}
-                    >
-                      {h}h
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-              <TextInput
-                style={[
-                  s.input,
-                  {
-                    backgroundColor: theme.surface2,
-                    borderColor: theme.borderDim,
-                    color: theme.text,
-                  },
-                ]}
-                value={hours}
-                onChangeText={setHours}
-                keyboardType="decimal-pad"
-                placeholder="O escribí (ej: 7.5)"
-                placeholderTextColor={theme.textMuted}
-              />
+              <Text style={[s.metricTitle, { color: theme.text }]}>
+                {t('sleep.log.hoursSlept')}
+              </Text>
+              <SleepHoursCard hours={computedHours} theme={theme} t={t} />
 
-              <Text style={[s.metricTitle, { color: theme.text }]}>Calidad del sueño</Text>
+              <Text style={[s.metricTitle, { color: theme.text }]}>
+                {t('sleep.log.qualityTitle')}
+              </Text>
               <View style={s.starsRow}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Pressable key={star} onPress={() => setQuality(star)} style={s.starBtn}>
@@ -338,15 +355,20 @@ export default function SleepLogModal({
               {quality > 0 && (
                 <Text style={[s.qualityHint, { color: theme.textSecondary }]}>
                   {
-                    ['', 'Muy malo 😞', 'Malo 😕', 'Regular 😐', 'Bueno 😊', 'Excelente 😄'][
-                      quality
-                    ]
+                    [
+                      '',
+                      t('sleep.log.quality1'),
+                      t('sleep.log.quality2'),
+                      t('sleep.log.quality3'),
+                      t('sleep.log.quality4'),
+                      t('sleep.log.quality5'),
+                    ][quality]
                   }
                 </Text>
               )}
 
               <Text style={[s.metricTitle, { color: theme.text }]}>
-                ¿Cuántas veces te despertaste?
+                {t('sleep.log.wakeUpsTitle')}
               </Text>
               <View style={s.chipsRow}>
                 {[0, 1, 2, 3, 4, 5].map((n) => (
@@ -366,15 +388,42 @@ export default function SleepLogModal({
                         wakeUps === n && { fontWeight: '700' },
                       ]}
                     >
-                      {n === 0 ? 'Ninguna' : n === 5 ? '5+' : String(n)}
+                      {n === 0
+                        ? t('sleep.log.noneWakeUps')
+                        : n === 5
+                          ? t('sleep.log.moreThan5')
+                          : String(n)}
                     </Text>
                   </Pressable>
                 ))}
               </View>
             </View>
           )}
-          <View style={{ height: 60 }} />
+          <View style={{ height: 24 }} />
         </ScrollView>
+
+        {/* Step CTA — pinned bottom */}
+        <View style={[s.stepBar, { borderTopColor: theme.borderDim }]}>
+          {step === 1 ? (
+            <Pressable style={[s.ctaBtn, { backgroundColor: INDIGO }]} onPress={() => setStep(2)}>
+              <Text style={s.ctaBtnTxt}>{t('sleep.log.continue')}</Text>
+            </Pressable>
+          ) : (
+            <View style={s.stepBarRow}>
+              <Pressable
+                style={[s.backBtn, { borderColor: theme.border }]}
+                onPress={() => setStep(1)}
+              >
+                <Text style={[s.backBtnTxt, { color: theme.textSecondary }]}>
+                  {t('sleep.log.back')}
+                </Text>
+              </Pressable>
+              <Pressable style={[s.ctaBtn, { backgroundColor: INDIGO, flex: 1 }]} onPress={save}>
+                <Text style={s.ctaBtnTxt}>{t('sleep.log.save')}</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
       </View>
     </Modal>
   );
@@ -402,25 +451,43 @@ const makeStyles = (_theme: AppTheme) =>
     headerCenter: { alignItems: 'center' },
     headerTitle: { fontSize: 16, fontWeight: '700' },
     headerSub: { fontSize: 12, marginTop: 2 },
-    saveBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.full },
-    saveBtnTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },
-    tabs: {
+    stepDots: {
       flexDirection: 'row',
-      marginHorizontal: Spacing.lg,
-      marginVertical: 12,
-      borderRadius: Radius.full,
-      padding: 4,
+      gap: 6,
+      alignItems: 'center',
+      width: 36,
+      justifyContent: 'flex-end',
     },
-    tabItem: {
-      flex: 1,
+    stepDot: { width: 8, height: 8, borderRadius: 4 },
+    stepHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6,
+      gap: 8,
+      marginHorizontal: Spacing.lg,
+      marginVertical: 12,
+      borderRadius: Radius.lg,
       paddingVertical: 10,
-      borderRadius: Radius.full,
+      paddingHorizontal: 14,
     },
-    tabText: { fontSize: 14 },
+    stepLabel: { fontSize: 13, fontWeight: '600' },
+    stepBar: {
+      paddingHorizontal: Spacing.lg,
+      paddingTop: 12,
+      paddingBottom: 16,
+      borderTopWidth: 1,
+    },
+    stepBarRow: { flexDirection: 'row', gap: 10 },
+    ctaBtn: { borderRadius: Radius.full, paddingVertical: 14, alignItems: 'center' },
+    ctaBtnTxt: { color: '#fff', fontWeight: '700', fontSize: 15 },
+    backBtn: {
+      borderRadius: Radius.full,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderWidth: 1.5,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backBtnTxt: { fontWeight: '600', fontSize: 14 },
     section: { paddingHorizontal: Spacing.lg },
     compCard: { borderRadius: Radius.xl, padding: Spacing.md, marginBottom: Spacing.lg },
     compRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
@@ -485,13 +552,6 @@ const makeStyles = (_theme: AppTheme) =>
       borderWidth: 1.5,
     },
     chipText: { fontSize: 14 },
-    input: {
-      borderWidth: 1,
-      borderRadius: Radius.md,
-      padding: Spacing.md,
-      fontSize: 14,
-      marginBottom: Spacing.sm,
-    },
     starsRow: { flexDirection: 'row', gap: 6, marginBottom: 8, justifyContent: 'center' },
     starBtn: { padding: 4 },
     qualityHint: { fontSize: 14, textAlign: 'center', marginBottom: Spacing.sm },

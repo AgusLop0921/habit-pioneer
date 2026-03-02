@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, Dimensions, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Rect, Polyline, Line } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 import { useSleepStore } from '../../store/sleepStore';
 import { useTheme } from '../../context/ThemeContext';
 import SettingsBar from '../../components/common/SettingsBar';
 import Icon from '../../components/common/Icon';
 import type { IconName } from '../../components/common/Icon';
 import SleepLogModal from './SleepLogModal';
+import SleepSession from './SleepSession';
+import StartSessionCard from './StartSessionCard';
 import SleepOnboarding from './SleepOnboarding';
 import { Spacing, Radius } from '../../theme';
 import type { AppTheme } from '../../theme';
@@ -31,6 +34,7 @@ type Range = 'week' | 'lastWeek' | 'month';
 // state local en lugar de overlay absoluto. ────────────
 export default function SleepScreen() {
   const { theme } = useTheme();
+  const { t, i18n } = useTranslation();
   const store = useSleepStore();
   const { isEnrolled, onboardingDone, enroll, logs, getWeekAvg, getMonthAvg, getLogsForRange } =
     store;
@@ -59,6 +63,7 @@ export default function SleepScreen() {
   }, [isEnrolled, onboardingDone]);
 
   const [showLog, setShowLog] = useState(false);
+  const [showSession, setShowSession] = useState(false);
   const [logDate, setLogDate] = useState(fmtDate(new Date()));
   const [range, setRange] = useState<Range>('week');
 
@@ -89,21 +94,23 @@ export default function SleepScreen() {
     return (
       <SafeAreaView style={[s.safe, { backgroundColor: theme.bg }]} edges={['top']}>
         <SettingsBar />
-        <ScrollView contentContainerStyle={s.enrollWrap} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={s.enrollScroll}
+          contentContainerStyle={s.enrollWrap}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={[s.enrollIcon, { backgroundColor: `${INDIGO}12` }]}>
             <Icon name="moon" size={52} color={INDIGO} />
           </View>
-          <Text style={[s.enrollTitle, { color: theme.text }]}>Higiene del Sueño</Text>
+          <Text style={[s.enrollTitle, { color: theme.text }]}>{t('sleep.enroll.title')}</Text>
           <Text style={[s.enrollBody, { color: theme.textSecondary }]}>
-            {
-              'Protocolo clínico de la Dra. Julia Santin\nCentro del Sueño UC\n\nMejorá tu sueño con hábitos respaldados\npor evidencia científica.'
-            }
+            {t('sleep.enroll.body')}
           </Text>
 
           {[
-            { icon: 'streak', text: 'Descanso más reparador' },
-            { icon: 'trend', text: 'Estadísticas semanales y mensuales' },
-            { icon: 'tasks', text: 'Checklist de 16 hábitos clave' },
+            { icon: 'streak', text: t('sleep.enroll.benefitRest') },
+            { icon: 'trend', text: t('sleep.enroll.benefitStats') },
+            { icon: 'tasks', text: t('sleep.enroll.benefitChecklist') },
           ].map((b, i) => (
             <View
               key={i}
@@ -115,17 +122,19 @@ export default function SleepScreen() {
               <Text style={[s.benefitText, { color: theme.text }]}>{b.text}</Text>
             </View>
           ))}
+        </ScrollView>
 
+        {/* Botones siempre sobre el tab bar */}
+        <View style={s.enrollButtons}>
           <Pressable
             style={[s.enrollBtn, { backgroundColor: INDIGO }]}
             onPress={() => {
               enroll();
-              // ← Va DIRECTO al onboarding, sin depender de useEffect
               setScreen('onboarding');
             }}
           >
             <Icon name="moon" size={18} color="#fff" />
-            <Text style={s.enrollBtnText}>Ver introducción</Text>
+            <Text style={s.enrollBtnText}>{t('sleep.enroll.ctaIntro')}</Text>
           </Pressable>
 
           <Pressable
@@ -137,10 +146,10 @@ export default function SleepScreen() {
             }}
           >
             <Text style={[s.skipEnrollTxt, { color: theme.textSecondary }]}>
-              Saltear intro e ir directo
+              {t('sleep.enroll.ctaSkip')}
             </Text>
           </Pressable>
-        </ScrollView>
+        </View>
       </SafeAreaView>
     );
   }
@@ -148,16 +157,27 @@ export default function SleepScreen() {
   // PANTALLA: MAIN HUB
   const s2 = makeMainStyles(theme);
 
+  // ── Sesión guiada (pantalla completa sin tabs) ──
+  // Renderizada como Modal fullScreen para ocultar la tab bar
+
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: theme.bg }]} edges={['top']}>
+      <Modal
+        visible={showSession}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setShowSession(false)}
+      >
+        <SleepSession onClose={() => setShowSession(false)} />
+      </Modal>
       <SettingsBar />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={s2.header}>
           <View>
-            <Text style={[s2.title, { color: theme.text }]}>Sueño</Text>
+            <Text style={[s2.title, { color: theme.text }]}>{t('sleep.hub.title')}</Text>
             <Text style={[s2.subtitle, { color: theme.textSecondary }]}>
-              {new Date().toLocaleDateString('es', {
+              {new Date().toLocaleDateString(i18n.language, {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -177,7 +197,7 @@ export default function SleepScreen() {
               onPress={() => openLog(today)}
             >
               <Icon name="plus" size={16} color="#fff" />
-              <Text style={s2.logBtnText}>Registrar</Text>
+              <Text style={s2.logBtnText}>{t('sleep.hub.register')}</Text>
             </Pressable>
           </View>
         </View>
@@ -185,8 +205,8 @@ export default function SleepScreen() {
         {/* Hoy + Ayer */}
         <View style={s2.dayRow}>
           {[
-            { label: 'Hoy', log: todayLog, date: today },
-            { label: 'Ayer', log: yestLog, date: yesterday },
+            { label: t('sleep.hub.today'), log: todayLog, date: today },
+            { label: t('sleep.hub.yesterday'), log: yestLog, date: yesterday },
           ].map(({ label, log, date }) => (
             <Pressable
               key={label}
@@ -209,18 +229,25 @@ export default function SleepScreen() {
                 <>
                   <Text style={[s2.hoursNum, { color: theme.text }]}>{log.hoursSlept}h</Text>
                   <Text style={[s2.dayMeta, { color: theme.textSecondary }]}>
-                    {label === 'Hoy'
-                      ? `${log.checklistDone.length}/16 hábitos`
+                    {label === t('sleep.hub.today')
+                      ? t('sleep.hub.habitsCount', { count: log.checklistDone.length })
                       : log.wakeUps === 0
-                        ? 'Sin despertares'
-                        : `${log.wakeUps} despertar${log.wakeUps > 1 ? 'es' : ''}`}
+                        ? t('sleep.hub.noWakeUps')
+                        : t('sleep.hub.wakeUp_other', { count: log.wakeUps })}
                   </Text>
                 </>
               ) : (
-                <Text style={[s2.noReg, { color: theme.textMuted }]}>Sin registrar</Text>
+                <Text style={[s2.noReg, { color: theme.textMuted }]}>
+                  {t('sleep.hub.noRecord')}
+                </Text>
               )}
             </Pressable>
           ))}
+        </View>
+
+        {/* Sesión guiada */}
+        <View style={{ paddingHorizontal: 16, marginTop: -4 }}>
+          <StartSessionCard onPress={() => setShowSession(true)} />
         </View>
 
         <View style={s2.statsWrap}>
@@ -228,9 +255,9 @@ export default function SleepScreen() {
           <View style={[s2.rangeRow, { backgroundColor: theme.surface }]}>
             {(
               [
-                { key: 'week', label: 'Esta semana' },
-                { key: 'lastWeek', label: 'Sem. pasada' },
-                { key: 'month', label: 'Este mes' },
+                { key: 'week', label: t('sleep.hub.thisWeek') },
+                { key: 'lastWeek', label: t('sleep.hub.lastWeek') },
+                { key: 'month', label: t('sleep.hub.thisMonth') },
               ] as const
             ).map((r) => (
               <Pressable
@@ -255,19 +282,19 @@ export default function SleepScreen() {
           <View style={s2.statCards}>
             {[
               {
-                label: 'Prom. horas',
+                label: t('sleep.hub.avgHours'),
                 value: stats.hours > 0 ? `${stats.hours}h` : '—',
                 icon: 'moon',
                 color: INDIGO,
               },
               {
-                label: 'Calidad',
+                label: t('sleep.hub.quality'),
                 value: stats.quality > 0 ? `${stats.quality}/5` : '—',
                 icon: 'streak',
                 color: '#f59e0b',
               },
               {
-                label: 'Cumplimiento',
+                label: t('sleep.hub.compliance'),
                 value: `${stats.compliance}%`,
                 icon: 'checkCircle',
                 color: '#22c55e',
@@ -293,7 +320,7 @@ export default function SleepScreen() {
           <View
             style={[s2.chartCard, { backgroundColor: theme.surface, borderColor: theme.borderDim }]}
           >
-            <Text style={[s2.chartTitle, { color: theme.text }]}>Horas dormidas</Text>
+            <Text style={[s2.chartTitle, { color: theme.text }]}>{t('sleep.hub.chartHours')}</Text>
             {chartData.some((d) => d.hoursSlept > 0) ? (
               <>
                 <Svg width={CHART_W} height={CHART_H + 10} style={{ marginTop: 8 }}>
@@ -350,12 +377,14 @@ export default function SleepScreen() {
                   <View style={s2.legendItem}>
                     <View style={[s2.legendDot, { backgroundColor: INDIGO }]} />
                     <Text style={[s2.legendTxt, { color: theme.textSecondary }]}>
-                      Horas (≥7h oscuro)
+                      {t('sleep.hub.legendHours')}
                     </Text>
                   </View>
                   <View style={s2.legendItem}>
                     <View style={[s2.legendDot, { backgroundColor: '#f59e0b' }]} />
-                    <Text style={[s2.legendTxt, { color: theme.textSecondary }]}>Calidad</Text>
+                    <Text style={[s2.legendTxt, { color: theme.textSecondary }]}>
+                      {t('sleep.hub.legendQuality')}
+                    </Text>
                   </View>
                 </View>
               </>
@@ -363,7 +392,7 @@ export default function SleepScreen() {
               <View style={s2.chartEmpty}>
                 <Icon name="moon" size={32} color={theme.textMuted} />
                 <Text style={[s2.chartEmptyTxt, { color: theme.textMuted }]}>
-                  Registrá algunos días para ver tu gráfico
+                  {t('sleep.hub.chartEmpty')}
                 </Text>
               </View>
             )}
@@ -376,12 +405,12 @@ export default function SleepScreen() {
               { backgroundColor: theme.surface, borderColor: theme.borderDim },
             ]}
           >
-            <Text style={[s2.chartTitle, { color: theme.text }]}>Últimos 7 días</Text>
+            <Text style={[s2.chartTitle, { color: theme.text }]}>{t('sleep.hub.last7')}</Text>
             <View style={s2.timelineRow}>
               {last7.map((log, i) => {
                 const d = subDays(6 - i);
                 const dayLetter = d
-                  .toLocaleDateString('es', { weekday: 'narrow' })
+                  .toLocaleDateString(i18n.language, { weekday: 'narrow' })
                   .charAt(0)
                   .toUpperCase();
                 const isToday = log.date === today;
@@ -433,7 +462,9 @@ export default function SleepScreen() {
 // Estilos pantalla enroll
 const s = StyleSheet.create({
   safe: { flex: 1 },
-  enrollWrap: { alignItems: 'center', padding: Spacing.xl, gap: 14, paddingBottom: 48 },
+  enrollScroll: { flex: 1 },
+  enrollWrap: { alignItems: 'center', padding: Spacing.xl, gap: 14, paddingBottom: 8 },
+  enrollButtons: { paddingHorizontal: Spacing.xl, gap: 10, paddingTop: 8, paddingBottom: 16 },
   enrollIcon: {
     width: 100,
     height: 100,

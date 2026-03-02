@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
   Animated,
+  ScrollView,
   DimensionValue,
   StatusBar,
 } from 'react-native';
@@ -20,6 +21,7 @@ import Svg, {
   RadialGradient,
   Stop,
 } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 import { useSleepStore } from '../../store/sleepStore';
 
 const PALETTES = [
@@ -567,80 +569,14 @@ function RocketSVG({ color }: { color: string }) {
 }
 
 // ─────────────────────────────────────────────
-//  DATOS DE LOS SLIDES
+//  DATOS ESTRUCTURALES DE LOS SLIDES (sin texto)
 // ─────────────────────────────────────────────
-const SLIDES = [
-  {
-    paletteIdx: 0,
-    Illustration: BrainSleepSVG,
-    emoji: '🧠',
-    tag: 'NEUROCIENCIA DEL SUEÑO',
-    title: 'Tu cerebro tiene turno noche',
-    facts: [
-      'Mientras dormís, tu cerebro literalmente se lava.',
-      'El sistema glinfático elimina proteínas tóxicas (incluyendo las asociadas al Alzheimer) solo durante el sueño profundo.',
-      '8 horas de sueño no es un lujo — es mantenimiento obligatorio del hardware.',
-    ],
-    funFact: '💡 Los que duermen menos de 6h tienen 4× más probabilidad de resfriarse.',
-    cta: 'Siguiente →',
-  },
-  {
-    paletteIdx: 1,
-    Illustration: DebtClockSVG,
-    emoji: '💸',
-    tag: 'LA DEUDA DE SUEÑO',
-    title: 'Una deuda que no podés ignorar',
-    facts: [
-      'Cada hora de sueño perdida se acumula como "deuda de sueño".',
-      'Después de 17hs sin dormir, tu rendimiento cognitivo equivale a tener 0.5% de alcohol en sangre.',
-      'El "recuperar sueño el fin de semana" ayuda un poco... pero no cancela la deuda de la semana.',
-    ],
-    funFact: '😬 1 noche de 5h baja la testosterona un 15% — más que 10 años de envejecimiento.',
-    cta: 'Siguiente →',
-  },
-  {
-    paletteIdx: 2,
-    Illustration: CircadianSVG,
-    emoji: '🕐',
-    tag: 'RITMO CIRCADIANO',
-    title: 'Tu reloj interno manda',
-    facts: [
-      'Tenés un reloj biológico de 24hs controlado por la luz. Lo llaman ritmo circadiano.',
-      'La melatonina (hormona del sueño) empieza a subir 2h antes de tu hora habitual de dormir.',
-      'La luz azul del celular la suprime hasta 3 horas. Básicamente le decís a tu cerebro "es mediodía".',
-    ],
-    funFact:
-      '☀️ Salir al sol 10 min por la mañana sincroniza tu reloj mejor que cualquier pastilla.',
-    cta: 'Siguiente →',
-  },
-  {
-    paletteIdx: 3,
-    Illustration: GoldenRulesSVG,
-    emoji: '🏆',
-    tag: 'LAS REGLAS DE ORO',
-    title: 'Tres cosas que cambian todo',
-    facts: [
-      '① Misma hora de levantarte todos los días (sí, el finde también). Es el ancla de tu ritmo.',
-      '② La cama solo para dormir. Tu cerebro aprende asociaciones. Entrenalo bien.',
-      '③ 0 pantallas 30 min antes. No es opcional — es el interruptor del sueño.',
-    ],
-    funFact: '🔬 Estos 3 hábitos solos mejoran la calidad del sueño en un 60% en 2 semanas.',
-    cta: 'Siguiente →',
-  },
-  {
-    paletteIdx: 4,
-    Illustration: RocketSVG,
-    emoji: '🚀',
-    tag: 'EMPEZAMOS',
-    title: '16 hábitos. 30 segundos por día.',
-    facts: [
-      'El protocolo que vas a seguir fue diseñado por la Dra. Julia Santin del Centro del Sueño UC.',
-      'Cada mañana registrás cómo dormiste: 30 segundos, datos reales.',
-      'En 2 semanas empezás a ver el patrón. En 4 semanas, el cambio.',
-    ],
-    funFact: '✨ Las personas que trackean su sueño duermen en promedio 47 min más por noche.',
-    cta: '¡Empezar el programa!',
-  },
+const SLIDE_META = [
+  { paletteIdx: 0, Illustration: BrainSleepSVG, emoji: '🧠', sKey: 's1' },
+  { paletteIdx: 1, Illustration: DebtClockSVG, emoji: '💸', sKey: 's2' },
+  { paletteIdx: 2, Illustration: CircadianSVG, emoji: '🕐', sKey: 's3' },
+  { paletteIdx: 3, Illustration: GoldenRulesSVG, emoji: '🏆', sKey: 's4' },
+  { paletteIdx: 4, Illustration: RocketSVG, emoji: '🚀', sKey: 's5' },
 ];
 
 // ─────────────────────────────────────────────
@@ -648,6 +584,7 @@ const SLIDES = [
 // ─────────────────────────────────────────────
 export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
   const { completeOnboarding } = useSleepStore();
+  const { t } = useTranslation();
   const [current, setCurrent] = useState(0);
 
   // Animations
@@ -662,7 +599,24 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
   const funFOpac = useRef(new Animated.Value(0)).current;
   const progressW = useRef(new Animated.Value(0)).current;
 
-  const slide = SLIDES[current];
+  // Computed slides from translations
+  const slides = useMemo(
+    () =>
+      SLIDE_META.map((meta, i) => ({
+        ...meta,
+        tag: t(`sleep.onboarding.${meta.sKey}.tag`),
+        title: t(`sleep.onboarding.${meta.sKey}.title`),
+        facts: [0, 1, 2].map((j) => t(`sleep.onboarding.${meta.sKey}.fact${j}`)),
+        funFact: t(`sleep.onboarding.${meta.sKey}.funFact`),
+        cta:
+          i < SLIDE_META.length - 1
+            ? t('sleep.onboarding.next')
+            : t('sleep.onboarding.startProgram'),
+      })),
+    [t]
+  );
+
+  const slide = slides[current];
   const palette = PALETTES[slide.paletteIdx];
   const Illustration = slide.Illustration;
 
@@ -674,7 +628,7 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
         Animated.timing(illFloat, { toValue: 0, duration: 1800, useNativeDriver: true }),
       ])
     ).start();
-  }, []);
+  }, [illFloat]);
 
   // Entrada staggered al montar y cuando cambia slide
   useEffect(() => {
@@ -686,7 +640,7 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
 
     // Progreso barra
     Animated.timing(progressW, {
-      toValue: (current + 1) / SLIDES.length,
+      toValue: (current + 1) / slides.length,
       duration: 400,
       useNativeDriver: false,
     }).start();
@@ -703,10 +657,21 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
       Animated.timing(fact3Opac, { toValue: 1, duration: 320, useNativeDriver: true }),
       Animated.timing(funFOpac, { toValue: 1, duration: 320, useNativeDriver: true }),
     ]).start();
-  }, [current]);
+  }, [
+    current,
+    fact1Opac,
+    fact2Opac,
+    fact3Opac,
+    funFOpac,
+    illScale,
+    progressW,
+    slides.length,
+    titleOpac,
+    titleY,
+  ]);
 
   const goNext = () => {
-    if (current >= SLIDES.length - 1) {
+    if (current >= slides.length - 1) {
       completeOnboarding();
       onDone();
       return;
@@ -756,11 +721,11 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
       </View>
 
       <Animated.View style={[s.content, { opacity: bgFade }]}>
-        <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
-          {/* Header: skip + progress */}
-          <View style={s.topBar}>
+        {/* Top bar pinned – only top safe area */}
+        <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent' }}>
+          <View style={[s.topBar, { paddingHorizontal: 24 }]}>
             <Pressable onPress={skip} style={s.skipBtn}>
-              <Text style={[s.skipTxt, { color: palette.sub }]}>Saltar</Text>
+              <Text style={[s.skipTxt, { color: palette.sub }]}>{t('sleep.onboarding.skip')}</Text>
             </Pressable>
             <View style={[s.progressTrack, { backgroundColor: `${palette.accent}25` }]}>
               <Animated.View
@@ -771,18 +736,21 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
               />
             </View>
             <Text style={[s.slideCount, { color: palette.sub }]}>
-              {current + 1}/{SLIDES.length}
+              {current + 1}/{slides.length}
             </Text>
           </View>
+        </SafeAreaView>
 
+        {/* Scrollable content */}
+        <ScrollView
+          style={s.scroll}
+          contentContainerStyle={[s.scrollContent, { paddingHorizontal: 24 }]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
           {/* Ilustración flotante */}
           <Animated.View
-            style={[
-              s.illWrap,
-              {
-                transform: [{ translateY: illFloat }, { scale: illScale }],
-              },
-            ]}
+            style={[s.illWrap, { transform: [{ translateY: illFloat }, { scale: illScale }] }]}
           >
             <View style={[s.illBg, { backgroundColor: `${palette.accent}12` }]}>
               <Illustration color={palette.accent} pulse={illScale} />
@@ -837,8 +805,10 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
           >
             <Text style={[s.funFactText, { color: palette.accent }]}>{slide.funFact}</Text>
           </Animated.View>
+        </ScrollView>
 
-          {/* CTA */}
+        {/* CTA + dots — siempre visibles, justo sobre el tab bar */}
+        <View style={[s.bottomBar, { paddingHorizontal: 24, paddingBottom: 16 }]}>
           <Pressable
             style={({ pressed }) => [
               s.cta,
@@ -849,9 +819,8 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
             <Text style={[s.ctaText, { color: palette.bg }]}>{slide.cta}</Text>
           </Pressable>
 
-          {/* Dots */}
           <View style={s.dots}>
-            {SLIDES.map((_, i) => (
+            {slides.map((_, i) => (
               <View
                 key={i}
                 style={[
@@ -862,7 +831,7 @@ export default function SleepOnboarding({ onDone }: { onDone: () => void }) {
               />
             ))}
           </View>
-        </SafeAreaView>
+        </View>
       </Animated.View>
     </View>
   );
@@ -890,13 +859,14 @@ const s = StyleSheet.create({
   stars: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
   star: { position: 'absolute' },
   content: { flex: 1 },
-  safe: { flex: 1, paddingHorizontal: 24 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 8, paddingBottom: 4 },
   skipBtn: { minWidth: 44 },
   skipTxt: { fontSize: 14 },
   progressTrack: { flex: 1, height: 4, borderRadius: 99, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 99 },
   slideCount: { fontSize: 12, minWidth: 28, textAlign: 'right' },
+  scroll: { flex: 1 },
+  scrollContent: { paddingTop: 4, paddingBottom: 16 },
   illWrap: { alignItems: 'center', marginVertical: 4 },
   illBg: {
     width: 190,
@@ -925,10 +895,11 @@ const s = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 11,
-    marginBottom: 16,
+    marginBottom: 4,
   },
   funFactText: { fontSize: 13, lineHeight: 19, fontWeight: '500' },
-  cta: { paddingVertical: 15, borderRadius: 99, alignItems: 'center', marginBottom: 16 },
+  bottomBar: { paddingTop: 12 },
+  cta: { paddingVertical: 15, borderRadius: 99, alignItems: 'center', marginBottom: 12 },
   ctaText: { fontSize: 16, fontWeight: '800', letterSpacing: -0.2 },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 7 },
   dot: { height: 5, width: 5, borderRadius: 99 },

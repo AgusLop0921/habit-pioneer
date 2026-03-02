@@ -27,7 +27,7 @@ const TABS = [
 function PillTabBar({ state, navigation }: BottomTabBarProps) {
   const { theme } = useTheme();
   return (
-    <View style={s.wrapper}>
+    <View style={[s.wrapper, { backgroundColor: theme.bg }]}>
       <View style={[s.pill, { backgroundColor: theme.surface }]}>
         {state.routes.map((route: { key: string; name: string }, i: number) => {
           const focused = state.index === i;

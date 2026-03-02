@@ -47,7 +47,7 @@ export const useSleepStore = create<SleepStore>()(
       onboardingDone: false,
       logs: {},
 
-      enroll: () => set({ isEnrolled: false }),
+      enroll: () => set({ isEnrolled: true }),
       completeOnboarding: () => set({ onboardingDone: true }),
 
       saveLog: (date, partial) =>
