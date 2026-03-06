@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSleepStore } from '../../store/sleepStore';
 import { useTheme } from '../../context/ThemeContext';
 import Icon from '../common/Icon';
@@ -14,6 +15,7 @@ const subDaysStr = (n: number) => {
 
 export default function SleepHomeCard({ onPress }: { onPress: () => void }) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { isEnrolled, logs, getWeekAvg } = useSleepStore();
   if (!isEnrolled) return null;
 
@@ -29,19 +31,21 @@ export default function SleepHomeCard({ onPress }: { onPress: () => void }) {
         <Icon name="moon" size={22} color={INDIGO} />
       </View>
       <View style={s.info}>
-        <Text style={[s.title, { color: theme.text }]}>Sueño</Text>
+        <Text style={[s.title, { color: theme.text }]}>{t('sleep.homeCard.title')}</Text>
         {yestLog?.hoursSlept > 0 ? (
           <Text style={[s.sub, { color: theme.textSecondary }]}>
-            Anoche {yestLog.hoursSlept}h · {'★'.repeat(yestLog.quality)}
+            {t('sleep.homeCard.lastNight')} {yestLog.hoursSlept}h · {'★'.repeat(yestLog.quality)}
           </Text>
         ) : (
-          <Text style={[s.sub, { color: theme.textMuted }]}>Sin registrar ayer</Text>
+          <Text style={[s.sub, { color: theme.textMuted }]}>{t('sleep.homeCard.noRecord')}</Text>
         )}
       </View>
       {weekAvg.hours > 0 && (
         <View style={s.avg}>
           <Text style={[s.avgNum, { color: INDIGO }]}>{weekAvg.hours}h</Text>
-          <Text style={[s.avgLabel, { color: theme.textSecondary }]}>prom 7d</Text>
+          <Text style={[s.avgLabel, { color: theme.textSecondary }]}>
+            {t('sleep.homeCard.avg7d')}
+          </Text>
         </View>
       )}
       <Icon name="chevronDown" size={14} color={theme.textMuted} />

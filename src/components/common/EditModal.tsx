@@ -203,7 +203,7 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
 
       {type === 'habit' && (
         <>
-          <Text style={s.label}>{t('forms.habitName')}</Text>
+          <Text style={s.label}>{t('forms.habitName')} *</Text>
           <TextInput
             style={s.input}
             value={habitName}
@@ -220,7 +220,7 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
             placeholder={t('forms.habitDescPlaceholder')}
             placeholderTextColor={theme.textMuted}
           />
-          <Text style={s.label}>Emoji (opcional)</Text>
+          <Text style={s.label}>{t('forms.emoji')}</Text>
           <TextInput
             style={s.input}
             value={habitEmoji}

@@ -10,6 +10,7 @@
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, PanResponder } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
 import Icon from './Icon';
 import { Radius } from '../../theme';
@@ -31,11 +32,14 @@ export default function SwipeableRow({
   children,
   onDelete,
   onEdit,
-  deleteLabel = 'Borrar',
-  editLabel = 'Editar',
+  deleteLabel: deleteLabelProp,
+  editLabel: editLabelProp,
   borderColor,
 }: Props) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const deleteLabel = deleteLabelProp ?? t('actions.swipeDelete');
+  const editLabel = editLabelProp ?? t('actions.edit');
 
   // Valor animado: cuánto se desplaza el contenido hacia la izquierda
   const translateX = useRef(new Animated.Value(0)).current;

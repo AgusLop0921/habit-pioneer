@@ -1,16 +1,17 @@
 import React from 'react';
-import { TextInput, Text, View, StyleSheet, TextInputProps } from 'react-native';
+import { TextInput, Text, View, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { Radius, Spacing } from '@/theme';
 
 interface Props extends TextInputProps {
   label?: string;
+  containerStyle?: ViewStyle;
 }
 
-export default function FormInput({ label, style, ...props }: Props) {
+export default function FormInput({ label, style, containerStyle, ...props }: Props) {
   const { theme } = useTheme();
   return (
-    <View style={styles.group}>
+    <View style={[styles.group, containerStyle]}>
       {label && <Text style={[styles.label, { color: theme.textSecondary }]}>{label}</Text>}
       <TextInput
         style={[

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import i18n from '../../i18n';
 
 interface Props {
   children: React.ReactNode;
@@ -43,7 +44,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={s.container}>
           <Text style={s.emoji}>⚠️</Text>
-          <Text style={s.title}>Algo salió mal</Text>
+          <Text style={s.title}>{i18n.t('error.title')}</Text>
           {__DEV__ && (
             <Text style={s.msg} numberOfLines={6}>
               {this.state.error?.message}
@@ -53,9 +54,9 @@ export default class ErrorBoundary extends Component<Props, State> {
             style={s.btn}
             onPress={this.reset}
             accessibilityRole="button"
-            accessibilityLabel="Reintentar"
+            accessibilityLabel={i18n.t('error.retry')}
           >
-            <Text style={s.btnText}>Reintentar</Text>
+            <Text style={s.btnText}>{i18n.t('error.retry')}</Text>
           </Pressable>
         </View>
       );

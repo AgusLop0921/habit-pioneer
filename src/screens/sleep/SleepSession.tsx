@@ -1042,7 +1042,7 @@ const ss = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 20,
     paddingBottom: 4,
   },
   closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },

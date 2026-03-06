@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, { FadeInDown, FadeOutLeft } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 import SwipeableRow from '@/components/common/SwipeableRow';
 import Icon, { IconName } from '@/components/common/Icon';
 import { useTheme } from '@/context/ThemeContext';
@@ -79,6 +80,7 @@ export default function HabitCard({
   onEdit,
 }: Props) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -95,7 +97,7 @@ export default function HabitCard({
   const iconName = habitIcon(habit.frequency);
 
   return (
-    <SwipeableRow onDelete={onDelete} onEdit={onEdit} deleteLabel="Borrar" editLabel="Editar">
+    <SwipeableRow onDelete={onDelete} onEdit={onEdit}>
       <Animated.View
         entering={FadeInDown.duration(250).springify()}
         exiting={FadeOutLeft.duration(200)}
@@ -115,7 +117,10 @@ export default function HabitCard({
           style={s.info}
           onPress={handlePress}
           accessibilityRole="button"
-          accessibilityLabel={`${done ? 'Desmarcar' : 'Completar'} hábito ${habit.name}`}
+          accessibilityLabel={t('a11y.toggleHabit', {
+            action: done ? t('a11y.uncheck') : t('a11y.complete'),
+            name: habit.name,
+          })}
           accessibilityState={{ checked: done }}
         >
           <Text
@@ -141,7 +146,11 @@ export default function HabitCard({
             onPress={onIncrement}
             style={s.ringWrap}
             accessibilityRole="button"
-            accessibilityLabel={`Incrementar ${habit.name}: ${count} de ${targetCount}`}
+            accessibilityLabel={t('a11y.incrementHabit', {
+              name: habit.name,
+              count,
+              target: targetCount,
+            })}
           >
             <MiniRing progress={progress} color={ringColor} bg={theme.ringBg} done={done} />
           </Pressable>
@@ -150,7 +159,10 @@ export default function HabitCard({
             onPress={handlePress}
             style={s.ringWrap}
             accessibilityRole="button"
-            accessibilityLabel={done ? `Desmarcar ${habit.name}` : `Completar ${habit.name}`}
+            accessibilityLabel={t('a11y.toggleHabit', {
+              action: done ? t('a11y.uncheck') : t('a11y.complete'),
+              name: habit.name,
+            })}
           >
             <MiniRing progress={progress} color={ringColor} bg={theme.ringBg} done={done} />
           </Pressable>

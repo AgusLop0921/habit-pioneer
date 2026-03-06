@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+  AppState,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { format, isSameDay } from 'date-fns';
@@ -24,6 +32,18 @@ export default function TodayScreen() {
   const { theme } = useTheme();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Reset to today whenever the app comes back to the foreground
+  const appState = useRef(AppState.currentState);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (appState.current.match(/inactive|background/) && nextState === 'active') {
+        setSelectedDate(new Date());
+      }
+      appState.current = nextState;
+    });
+    return () => sub.remove();
+  }, []);
 
   // ── Domain hooks ────────────────────────────────────────────────────────────
   const {
@@ -323,25 +343,29 @@ export default function TodayScreen() {
       {/* Modal: nuevo hábito */}
       <BottomModal visible={modalHabit} onClose={() => setModalHabit(false)}>
         <Text style={[s.modalTitle, { color: theme.text }]}>{t('modals.addHabit')}</Text>
-        <FormInput
-          label={t('forms.habitName')}
-          placeholder={t('forms.habitNamePlaceholder')}
-          value={habitName}
-          onChangeText={setHabitName}
-          autoFocus
-        />
+        <View style={s.habitNameRow}>
+          <FormInput
+            label={`${t('forms.habitName')} *`}
+            placeholder={t('forms.habitNamePlaceholder')}
+            value={habitName}
+            onChangeText={setHabitName}
+            autoFocus
+            containerStyle={s.habitNameInput}
+          />
+          <FormInput
+            label={t('forms.emoji')}
+            placeholder="💪"
+            value={habitEmoji}
+            onChangeText={setHabitEmoji}
+            maxLength={4}
+            containerStyle={s.habitEmojiInput}
+          />
+        </View>
         <FormInput
           label={t('forms.habitDesc')}
           placeholder={t('forms.habitDescPlaceholder')}
           value={habitDesc}
           onChangeText={setHabitDesc}
-        />
-        <FormInput
-          label="Emoji (opcional)"
-          placeholder="💪🏅📚"
-          value={habitEmoji}
-          onChangeText={setHabitEmoji}
-          maxLength={4}
         />
         <Text style={[s.formLabel, { color: theme.textSecondary }]}>{t('frequency.label')}</Text>
         <View style={s.segRow}>
@@ -459,4 +483,7 @@ const makeStyles = (_theme: AppTheme) =>
     seg: { flex: 1, padding: 10, borderRadius: Radius.md, borderWidth: 1, alignItems: 'center' },
     segText: { fontSize: 13, fontWeight: '500' },
     modalActions: { flexDirection: 'row', gap: 10, marginTop: Spacing.md },
+    habitNameRow: { flexDirection: 'row', gap: 8 },
+    habitNameInput: { flex: 17, marginBottom: Spacing.md },
+    habitEmojiInput: { flex: 4, marginBottom: Spacing.md },
   });

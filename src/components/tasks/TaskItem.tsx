@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, { FadeInDown, FadeOutLeft } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import SwipeableRow from '@/components/common/SwipeableRow';
 import CheckCircle from '@/components/common/CheckCircle';
 import Icon, { IconName } from '@/components/common/Icon';
@@ -25,6 +26,7 @@ interface Props {
 
 export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLabel }: Props) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const meta = PRIORITY_META[task.priority];
 
   const handleToggle = () => {
@@ -33,7 +35,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
   };
 
   return (
-    <SwipeableRow onDelete={onDelete} onEdit={onEdit} deleteLabel="Borrar" editLabel="Editar">
+    <SwipeableRow onDelete={onDelete} onEdit={onEdit}>
       <Animated.View
         entering={FadeInDown.duration(250).springify()}
         exiting={FadeOutLeft.duration(200)}
@@ -46,7 +48,10 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
           ]}
           onPress={handleToggle}
           accessibilityRole="button"
-          accessibilityLabel={`${task.completed ? 'Desmarcar' : 'Completar'} tarea ${task.title}`}
+          accessibilityLabel={t('a11y.toggleTask', {
+            action: task.completed ? t('a11y.uncheck') : t('a11y.complete'),
+            name: task.title,
+          })}
           accessibilityState={{ checked: task.completed }}
         >
           {/* Barra lateral de prioridad */}

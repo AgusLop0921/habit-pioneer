@@ -30,6 +30,8 @@ export default {
       history: 'History',
       goals: 'Goals',
       shopping: 'List',
+      sleep: 'Sleep',
+      stats: 'Stats',
     },
     priority: {
       label: 'Priority',
@@ -59,10 +61,11 @@ export default {
       whatToBuy: 'What do you need?',
       itemPlaceholder: 'E.g: Toilet paper',
       quantity: 'Quantity',
-      habitName: 'Habit name',
+      habitName: 'Name',
       habitNamePlaceholder: 'E.g: Meditate 10 minutes',
-      habitDesc: 'Description (optional)',
+      habitDesc: 'Description',
       habitDescPlaceholder: 'E.g: In silence after waking up',
+      emoji: 'Emoji',
     },
     modals: {
       newTask: 'New task',
@@ -74,8 +77,25 @@ export default {
       cancel: 'Cancel',
       save: 'Save',
       delete: 'Delete',
+      edit: 'Edit',
+      swipeDelete: 'Delete',
     },
     language: 'Language',
+    error: {
+      title: 'Something went wrong',
+      retry: 'Retry',
+    },
+    a11y: {
+      markPending: 'Mark as pending',
+      markCompleted: 'Mark as completed',
+      toggleTask: '{{action}} task {{name}}',
+      toggleHabit: '{{action}} habit {{name}}',
+      incrementHabit: 'Increment {{name}}: {{count}} of {{target}}',
+      complete: 'Complete',
+      uncheck: 'Uncheck',
+      previousWeek: 'Previous week',
+      nextWeek: 'Next week',
+    },
     history: {
       trends: 'Trends',
       habits: 'Habits',
@@ -94,7 +114,7 @@ export default {
     },
     habitsEmpty: {
       title: 'Big change starts with small steps',
-      desc: 'Build good habits. Break bad ones. Be awesome.',
+      desc: 'Build good habits. Break bad ones. \n Be awesome.',
     },
     quotes: [
       { text: 'Habits are the compound interest of self-improvement.', author: 'James Clear' },
@@ -115,6 +135,19 @@ export default {
       },
     ],
     sleep: {
+      homeCard: {
+        title: 'Sleep',
+        lastNight: 'Last night',
+        noRecord: 'Not recorded yesterday',
+        avg7d: '7d avg',
+      },
+      sessionCard: {
+        greetingNight: 'Time to sleep',
+        greetingEvening: 'Get ready for bed',
+        greetingDay: 'Plan your night',
+        startTitle: 'Start sleep\nhygiene',
+        startSubtitle: "I'll guide you step by step tonight",
+      },
       enroll: {
         title: 'Sleep Hygiene',
         body: 'Clinical protocol by Dr. Julia Santin\nUC Sleep Center\n\nImprove your sleep with habits backed\nby scientific evidence.',

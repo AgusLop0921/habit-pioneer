@@ -4,6 +4,7 @@
  */
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const INDIGO = '#6366f1';
 
@@ -18,6 +19,7 @@ function getCardPalette(hour: number) {
 }
 
 export default function StartSessionCard({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation();
   const hour = new Date().getHours();
   const palette = getCardPalette(hour);
   const pulse = useRef(new Animated.Value(1)).current;
@@ -33,10 +35,10 @@ export default function StartSessionCard({ onPress }: { onPress: () => void }) {
 
   const greeting =
     hour >= 21 || hour < 3
-      ? 'Es hora de dormir'
+      ? t('sleep.sessionCard.greetingNight')
       : hour >= 17
-        ? 'Preparate para dormir'
-        : 'Planificá tu noche';
+        ? t('sleep.sessionCard.greetingEvening')
+        : t('sleep.sessionCard.greetingDay');
 
   return (
     <Pressable
@@ -53,8 +55,8 @@ export default function StartSessionCard({ onPress }: { onPress: () => void }) {
 
       <View style={s.textWrap}>
         <Text style={[s.greeting, { color: palette.sub }]}>{greeting}</Text>
-        <Text style={[s.title, { color: '#fff' }]}>Comenzar higiene{'\n'}del sueño</Text>
-        <Text style={[s.sub, { color: palette.sub }]}>Te guío paso a paso esta noche</Text>
+        <Text style={[s.title, { color: '#fff' }]}>{t('sleep.sessionCard.startTitle')}</Text>
+        <Text style={[s.sub, { color: palette.sub }]}>{t('sleep.sessionCard.startSubtitle')}</Text>
       </View>
 
       <View style={[s.arrow, { backgroundColor: `${palette.accent}20` }]}>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import Icon from './Icon';
 
@@ -11,12 +12,13 @@ interface Props {
 
 export default function CheckCircle({ done, onToggle, size = 24 }: Props) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   return (
     <Pressable
       onPress={onToggle}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: done }}
-      accessibilityLabel={done ? 'Marcar como pendiente' : 'Marcar como completado'}
+      accessibilityLabel={done ? t('a11y.markPending') : t('a11y.markCompleted')}
       style={[
         s.circle,
         { width: size, height: size, borderRadius: size / 2, borderColor: theme.border },

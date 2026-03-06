@@ -30,6 +30,8 @@ export default {
       history: 'Historial',
       goals: 'Objetivos',
       shopping: 'Lista',
+      sleep: 'Sueño',
+      stats: 'Stats',
     },
     priority: {
       label: 'Prioridad',
@@ -59,10 +61,11 @@ export default {
       whatToBuy: '¿Qué necesitás?',
       itemPlaceholder: 'Ej: Papel higiénico',
       quantity: 'Cantidad',
-      habitName: 'Nombre del hábito',
+      habitName: 'Nombre',
       habitNamePlaceholder: 'Ej: Meditar 10 minutos',
-      habitDesc: 'Descripción (opcional)',
+      habitDesc: 'Descripción',
       habitDescPlaceholder: 'Ej: En silencio después de despertarme',
+      emoji: 'Emoji',
     },
     modals: {
       newTask: 'Nueva tarea',
@@ -74,8 +77,25 @@ export default {
       cancel: 'Cancelar',
       save: 'Guardar',
       delete: 'Eliminar',
+      edit: 'Editar',
+      swipeDelete: 'Borrar',
     },
     language: 'Idioma',
+    error: {
+      title: 'Algo salió mal',
+      retry: 'Reintentar',
+    },
+    a11y: {
+      markPending: 'Marcar como pendiente',
+      markCompleted: 'Marcar como completado',
+      toggleTask: '{{action}} tarea {{name}}',
+      toggleHabit: '{{action}} hábito {{name}}',
+      incrementHabit: 'Incrementar {{name}}: {{count}} de {{target}}',
+      complete: 'Completar',
+      uncheck: 'Desmarcar',
+      previousWeek: 'Semana anterior',
+      nextWeek: 'Semana siguiente',
+    },
     history: {
       trends: 'Tendencias',
       habits: 'Hábitos',
@@ -94,7 +114,7 @@ export default {
     },
     habitsEmpty: {
       title: 'Los grandes cambios empiezan con pequeños pasos',
-      desc: 'Creá buenos hábitos. Rompé los malos. Sé increíble.',
+      desc: 'Creá buenos hábitos. Rompé los malos. \n Sé increíble.',
     },
     quotes: [
       {
@@ -121,6 +141,19 @@ export default {
       },
     ],
     sleep: {
+      homeCard: {
+        title: 'Sueño',
+        lastNight: 'Anoche',
+        noRecord: 'Sin registrar ayer',
+        avg7d: 'prom 7d',
+      },
+      sessionCard: {
+        greetingNight: 'Es hora de dormir',
+        greetingEvening: 'Preparate para dormir',
+        greetingDay: 'Planificá tu noche',
+        startTitle: 'Comenzar higiene\ndel sueño',
+        startSubtitle: 'Te guío paso a paso esta noche',
+      },
       enroll: {
         title: 'Higiene del Sueño',
         body: 'Protocolo clínico de la Dra. Julia Santin\nCentro del Sueño UC\n\nMejorá tu sueño con hábitos respaldados\npor evidencia científica.',

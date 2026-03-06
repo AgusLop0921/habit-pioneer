@@ -5,6 +5,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import TodayScreen from './TodayScreen';
 import GoalsScreen from './GoalsScreen';
@@ -17,15 +18,16 @@ const Tab = createBottomTabNavigator();
 const INDIGO = '#6366f1';
 
 const TABS = [
-  { name: 'Today', icon: 'home-outline', active: 'home', label: 'Home' },
-  { name: 'Sleep', icon: 'moon-outline', active: 'moon', label: 'Sueño' },
-  { name: 'History', icon: 'bar-chart-outline', active: 'bar-chart', label: 'Stats' },
-  { name: 'Goals', icon: 'trophy-outline', active: 'trophy', label: 'Goals' },
-  { name: 'Shopping', icon: 'cart-outline', active: 'cart', label: 'Lista' },
+  { name: 'Today', icon: 'home-outline', active: 'home', labelKey: 'tabs.home' },
+  { name: 'Sleep', icon: 'moon-outline', active: 'moon', labelKey: 'tabs.sleep' },
+  { name: 'History', icon: 'bar-chart-outline', active: 'bar-chart', labelKey: 'tabs.stats' },
+  { name: 'Goals', icon: 'trophy-outline', active: 'trophy', labelKey: 'tabs.goals' },
+  { name: 'Shopping', icon: 'cart-outline', active: 'cart', labelKey: 'tabs.shopping' },
 ];
 
 function PillTabBar({ state, navigation }: BottomTabBarProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   return (
     <View style={[s.wrapper, { backgroundColor: theme.bg }]}>
       <View style={[s.pill, { backgroundColor: theme.surface }]}>
@@ -48,7 +50,7 @@ function PillTabBar({ state, navigation }: BottomTabBarProps) {
                 size={21}
                 color={color}
               />
-              <Text style={[s.label, { color }, focused && s.labelActive]}>{tab.label}</Text>
+              <Text style={[s.label, { color }, focused && s.labelActive]}>{t(tab.labelKey)}</Text>
             </Pressable>
           );
         })}

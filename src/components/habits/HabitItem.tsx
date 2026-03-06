@@ -17,13 +17,7 @@ interface Props {
 export default function HabitItem({ habit, done, onToggle, onDelete, onEdit }: Props) {
   const { theme } = useTheme();
   return (
-    <SwipeableRow
-      onDelete={onDelete}
-      onEdit={onEdit}
-      deleteLabel="Borrar"
-      editLabel="Editar"
-      borderColor={theme.border}
-    >
+    <SwipeableRow onDelete={onDelete} onEdit={onEdit} borderColor={theme.border}>
       <Pressable
         style={[styles.item, { backgroundColor: theme.surface }, done && styles.done]}
         onPress={onToggle}

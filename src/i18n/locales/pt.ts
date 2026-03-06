@@ -30,6 +30,8 @@ export default {
       history: 'Histórico',
       goals: 'Objetivos',
       shopping: 'Lista',
+      sleep: 'Sono',
+      stats: 'Stats',
     },
     priority: {
       label: 'Prioridade',
@@ -59,10 +61,11 @@ export default {
       whatToBuy: 'O que você precisa?',
       itemPlaceholder: 'Ex: Papel higiênico',
       quantity: 'Quantidade',
-      habitName: 'Nome do hábito',
+      habitName: 'Nome',
       habitNamePlaceholder: 'Ex: Meditar 10 minutos',
-      habitDesc: 'Descrição (opcional)',
+      habitDesc: 'Descrição',
       habitDescPlaceholder: 'Ex: Em silêncio depois de acordar',
+      emoji: 'Emoji',
     },
     modals: {
       newTask: 'Nova tarefa',
@@ -74,8 +77,25 @@ export default {
       cancel: 'Cancelar',
       save: 'Salvar',
       delete: 'Excluir',
+      edit: 'Editar',
+      swipeDelete: 'Excluir',
     },
     language: 'Idioma',
+    error: {
+      title: 'Algo deu errado',
+      retry: 'Tentar novamente',
+    },
+    a11y: {
+      markPending: 'Marcar como pendente',
+      markCompleted: 'Marcar como concluído',
+      toggleTask: '{{action}} tarefa {{name}}',
+      toggleHabit: '{{action}} hábito {{name}}',
+      incrementHabit: 'Incrementar {{name}}: {{count}} de {{target}}',
+      complete: 'Concluir',
+      uncheck: 'Desmarcar',
+      previousWeek: 'Semana anterior',
+      nextWeek: 'Próxima semana',
+    },
     history: {
       trends: 'Tendências',
       habits: 'Hábitos',
@@ -94,7 +114,7 @@ export default {
     },
     habitsEmpty: {
       title: 'Grandes mudanças começam com pequenos passos',
-      desc: 'Crie bons hábitos. Quebre os ruins. Seja incrível.',
+      desc: 'Crie bons hábitos. Quebre os ruins. \n Seja incrível.',
     },
     quotes: [
       {
@@ -118,6 +138,19 @@ export default {
       },
     ],
     sleep: {
+      homeCard: {
+        title: 'Sono',
+        lastNight: 'Ontem à noite',
+        noRecord: 'Sem registro ontem',
+        avg7d: 'méd 7d',
+      },
+      sessionCard: {
+        greetingNight: 'Hora de dormir',
+        greetingEvening: 'Prepare-se para dormir',
+        greetingDay: 'Planeje sua noite',
+        startTitle: 'Começar higiene\ndo sono',
+        startSubtitle: 'Vou te guiar passo a passo esta noite',
+      },
       enroll: {
         title: 'Higiene do Sono',
         body: 'Protocolo clínico da Dra. Julia Santin\nCentro do Sono UC\n\nMelhore seu sono com hábitos respaldados\npor evidência científica.',
