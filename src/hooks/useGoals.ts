@@ -7,6 +7,7 @@ export function useGoals() {
   const editWeeklyGoal = useStore((s) => s.editWeeklyGoal);
   const removeWeeklyGoal = useStore((s) => s.removeWeeklyGoal);
   const logGoalCompletion = useStore((s) => s.logGoalCompletion);
+  const undoGoalCompletion = useStore((s) => s.undoGoalCompletion);
 
   return {
     weeklyGoals,
@@ -14,5 +15,6 @@ export function useGoals() {
     editWeeklyGoal,
     removeWeeklyGoal,
     logGoalCompletion,
+    undoGoalCompletion,
   };
 }

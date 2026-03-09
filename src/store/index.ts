@@ -9,6 +9,7 @@ import {
   createShoppingSlice,
   createSettingsSlice,
   createStatsSlice,
+  createCategoriesSlice,
 } from './slices';
 
 export const useStore = create<Store>()(
@@ -20,6 +21,7 @@ export const useStore = create<Store>()(
       ...createShoppingSlice(...a),
       ...createSettingsSlice(...a),
       ...createStatsSlice(...a),
+      ...createCategoriesSlice(...a),
     }),
     {
       name: 'habits-pioneer-store-v2',

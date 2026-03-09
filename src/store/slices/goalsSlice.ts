@@ -31,4 +31,11 @@ export const createGoalsSlice: StateCreator<Store, [], [], GoalsSlice> = (set) =
         g.id === id ? { ...g, completions: [...g.completions, new Date().toISOString()] } : g
       ),
     })),
+
+  undoGoalCompletion: (id) =>
+    set((s) => ({
+      weeklyGoals: s.weeklyGoals.map((g) =>
+        g.id === id ? { ...g, completions: g.completions.slice(0, -1) } : g
+      ),
+    })),
 });

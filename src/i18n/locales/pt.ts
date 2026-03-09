@@ -55,28 +55,7 @@ export default {
         },
       },
     },
-    notifications: {
-      sleep: {
-        warning: {
-          title: '🌙 Comece sua rotina noturna',
-          body: 'Para acordar descansado amanhã, você deve estar na cama às {{time}}',
-        },
-        time: {
-          title: '😴 É hora de dormir',
-          body: 'Seu corpo vai agradecer amanhã. Boa noite!',
-        },
-      },
-      settings: {
-        title: 'Notificações',
-        master: 'Ativar notificações',
-        pomodoro: 'Pomodoro',
-        sleep: 'Rotina de sono',
-        tasks: 'Lembretes de tarefas',
-        midday: 'Check do meio-dia',
-        wakeTime: 'Hora de acordar',
-        middayTime: 'Hora do check-in',
-      },
-    },
+
     general: 'Geral',
     dailyHabits: 'Diários',
     weeklyHabits: 'Semanais',
@@ -240,6 +219,7 @@ export default {
         register: 'Registrar',
         today: 'Hoje',
         yesterday: 'Ontem',
+        nightBeforeLast: 'Anteontem à noite',
         lastNight: 'Ontem à noite',
         tonight: 'Hoje à noite',
         noRecord: 'Sem registro',

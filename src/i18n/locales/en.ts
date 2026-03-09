@@ -55,28 +55,7 @@ export default {
         },
       },
     },
-    notifications: {
-      sleep: {
-        warning: {
-          title: '🌙 Start your night routine',
-          body: 'To wake up rested tomorrow, you should be in bed by {{time}}',
-        },
-        time: {
-          title: '😴 Time to sleep',
-          body: 'Your body will thank you tomorrow. Good night!',
-        },
-      },
-      settings: {
-        title: 'Notifications',
-        master: 'Enable notifications',
-        pomodoro: 'Pomodoro',
-        sleep: 'Sleep routine',
-        tasks: 'Task reminders',
-        midday: 'Midday check',
-        wakeTime: 'Wake up time',
-        middayTime: 'Check-in time',
-      },
-    },
+
     general: 'General',
     dailyHabits: 'Daily',
     weeklyHabits: 'Weekly',
@@ -237,6 +216,7 @@ export default {
         register: 'Log',
         today: 'Today',
         yesterday: 'Yesterday',
+        nightBeforeLast: 'Night before last',
         lastNight: 'Last night',
         tonight: 'Tonight',
         noRecord: 'Not logged',

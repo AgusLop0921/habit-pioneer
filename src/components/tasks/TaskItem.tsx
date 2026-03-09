@@ -73,11 +73,6 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
                 {task.title}
               </Text>
             </View>
-            {task.reminderEnabled && task.scheduledTime && (
-              <Text style={[s.reminderTime, { color: theme.textMuted }]}>
-                ⏰ {task.scheduledTime}
-              </Text>
-            )}
           </View>
 
           {/* Badge de prioridad con ícono */}
@@ -108,7 +103,6 @@ const s = StyleSheet.create({
   content: { flex: 1, justifyContent: 'center' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   categoryIcon: { fontSize: 14 },
-  reminderTime: { fontSize: 11, fontWeight: '600', marginTop: 2 },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -17,7 +17,7 @@ import type { WeeklyGoal } from '@/types';
 export default function GoalsScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { weeklyGoals, addWeeklyGoal, editWeeklyGoal, removeWeeklyGoal, logGoalCompletion } =
+  const { weeklyGoals, addWeeklyGoal, editWeeklyGoal, removeWeeklyGoal, logGoalCompletion, undoGoalCompletion } =
     useGoals();
   const [modal, setModal] = useState(false);
   const [title, setTitle] = useState('');
@@ -58,6 +58,7 @@ export default function GoalsScreen() {
                 key={g.id}
                 goal={g}
                 onLog={() => logGoalCompletion(g.id)}
+                onUndo={() => undoGoalCompletion(g.id)}
                 onDelete={() => removeWeeklyGoal(g.id)}
                 onEdit={() => setEditItem(g)}
               />

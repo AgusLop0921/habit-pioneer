@@ -26,6 +26,8 @@ function useLanguageSync() {
   }, [language]);
 }
 
+import { FloatingPomodoroButton, PomodoroModal } from './src/components/pomodoro';
+
 function AppContent() {
   useLanguageSync();
   const [phase, setPhase] = useState<Phase>('splash');
@@ -41,7 +43,11 @@ function AppContent() {
         <MotivationalScreen onContinue={() => setPhase('app')} />
       )}
       {phase === 'app' && (
-        <MainNavigator />
+        <>
+          <MainNavigator />
+          <FloatingPomodoroButton />
+          <PomodoroModal />
+        </>
       )}
     </View>
   );

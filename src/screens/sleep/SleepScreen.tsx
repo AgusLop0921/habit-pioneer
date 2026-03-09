@@ -160,23 +160,25 @@ export default function SleepScreen() {
   // Night-of: compute dates
   const todayDate = new Date();
   const yesterdayDate = subDays(1);
-  const tomorrowDate = new Date(todayDate);
-  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const dayBeforeYesterdayDate = subDays(2);
 
-  // "Last night" = noche de ayer (te acostaste ayer, te despertaste hoy)
+  // "Night before last" = anteanoche
+  const nightBeforeLastKey = fmtDate(dayBeforeYesterdayDate);
+  // "Last night" = anoche
   const lastNightKey = fmtDate(yesterdayDate);
-  // "Tonight" = noche de hoy (te acostás hoy, te despertás mañana)
-  const tonightKey = fmtDate(todayDate);
 
+  const nightBeforeLastLog = logs[nightBeforeLastKey];
   const lastNightLog = logs[lastNightKey];
-  const tonightLog = logs[tonightKey];
 
-  // Format "Vie 6 → Sáb 7" style labels
-  const fmtDayShort = (d: Date) =>
-    d.toLocaleDateString(i18n.language, { weekday: 'short', day: 'numeric' });
+  const fmtDayFull = (d: Date) => {
+    const str = d.toLocaleDateString(i18n.language, { weekday: 'long' });
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
 
-  const lastNightRange = `${fmtDayShort(yesterdayDate)} → ${fmtDayShort(todayDate)}`;
-  const tonightRange = `${fmtDayShort(todayDate)} → ${fmtDayShort(tomorrowDate)}`;
+  const nightBeforeLastRange = `${fmtDayFull(dayBeforeYesterdayDate)} a ${fmtDayFull(
+    yesterdayDate
+  )}`;
+  const lastNightRange = `${fmtDayFull(yesterdayDate)} a ${fmtDayFull(todayDate)}`;
 
   // Sesión guiada (pantalla completa sin tabs)
   return (
@@ -220,20 +222,20 @@ export default function SleepScreen() {
           </View>
         </View>
 
-        {/* Night-of cards: Last Night + Tonight */}
+        {/* Night-of cards: Night Before Last + Last Night */}
         <View style={s2.dayRow}>
           {[
+            {
+              label: t('sleep.hub.nightBeforeLast'),
+              sublabel: nightBeforeLastRange,
+              log: nightBeforeLastLog,
+              date: nightBeforeLastKey,
+            },
             {
               label: t('sleep.hub.lastNight'),
               sublabel: lastNightRange,
               log: lastNightLog,
               date: lastNightKey,
-            },
-            {
-              label: t('sleep.hub.tonight'),
-              sublabel: tonightRange,
-              log: tonightLog,
-              date: tonightKey,
             },
           ].map(({ label, sublabel, log, date }) => (
             <Pressable
@@ -444,7 +446,7 @@ export default function SleepScreen() {
                   .toLocaleDateString(i18n.language, { weekday: 'narrow' })
                   .charAt(0)
                   .toUpperCase();
-                const isTonight = nightDate === tonightKey;
+                const isTonight = nightDate === lastNightKey;
                 const hasData = log.hoursSlept > 0;
                 return (
                   <Pressable key={i} style={s2.tlDay} onPress={() => openLog(nightDate)}>

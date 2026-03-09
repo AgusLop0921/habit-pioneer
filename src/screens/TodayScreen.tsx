@@ -92,8 +92,6 @@ export default function TodayScreen() {
 
   // Modal specific state
   const [taskCategory, setTaskCategory] = useState<string>('personal');
-  const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [reminderTime, setReminderTime] = useState('09:00');
 
   // Custom category creation
   const [modalNewCategory, setModalNewCategory] = useState(false);
@@ -124,13 +122,10 @@ export default function TodayScreen() {
     if (!taskTitle.trim()) return;
     addTaskForDate(taskTitle.trim(), taskPriority, {
       category: taskCategory,
-      reminderEnabled,
-      scheduledTime: reminderEnabled ? reminderTime : undefined,
     } as any);
     setTaskTitle('');
     setTaskPriority('medium');
     setTaskCategory('personal');
-    setReminderEnabled(false);
     setModalTask(false);
   };
 
@@ -447,35 +442,6 @@ export default function TodayScreen() {
             ))}
           </View>
         </ScrollView>
-
-        <View style={s.reminderRow}>
-          <View>
-            <Text style={[s.formLabel, { color: theme.textSecondary, marginBottom: 0 }]}>
-              {t('task.form.reminder')}
-            </Text>
-            {reminderEnabled && (
-              <Text style={[s.reminderTimeSub, { color: theme.accent }]}>{reminderTime}</Text>
-            )}
-          </View>
-          <Switch
-            value={reminderEnabled}
-            onValueChange={setReminderEnabled}
-            trackColor={{ false: theme.surface3, true: theme.accent }}
-            thumbColor="#fff"
-          />
-        </View>
-
-        {reminderEnabled && (
-          <View style={s.timeInputRow}>
-            <FormInput
-              label={t('task.form.time')}
-              placeholder="09:00"
-              value={reminderTime}
-              onChangeText={setReminderTime}
-              containerStyle={{ flex: 1 }}
-            />
-          </View>
-        )}
         <View style={s.modalActions}>
           <OrangeButton
             label={t('actions.cancel')}
@@ -681,23 +647,6 @@ const makeStyles = (_theme: AppTheme) =>
     filterText: {
       fontSize: 13,
       fontWeight: '600',
-    },
-    reminderRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: _theme.surface2,
-      padding: Spacing.md,
-      borderRadius: Radius.lg,
-      marginTop: Spacing.sm,
-    },
-    reminderTimeSub: {
-      fontSize: 12,
-      fontWeight: '700',
-      marginTop: 2,
-    },
-    timeInputRow: {
-      marginTop: Spacing.sm,
     },
     textInput: {
       borderWidth: 1,

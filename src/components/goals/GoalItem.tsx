@@ -9,11 +9,12 @@ import { WeeklyGoal } from '@/types';
 interface Props {
   goal: WeeklyGoal;
   onLog: () => void;
+  onUndo: () => void;
   onDelete: () => void;
   onEdit: () => void;
 }
 
-export default function GoalItem({ goal, onLog, onDelete, onEdit }: Props) {
+export default function GoalItem({ goal, onLog, onUndo, onDelete, onEdit }: Props) {
   const { theme } = useTheme();
   const done = goal.completions.length;
   const pct = Math.round((done / goal.targetCount) * 100);
@@ -43,20 +44,26 @@ export default function GoalItem({ goal, onLog, onDelete, onEdit }: Props) {
 
         {/* Dots de progreso */}
         <View style={s.dots}>
-          {Array.from({ length: goal.targetCount }).map((_, i) => (
-            <Pressable
-              key={i}
-              style={[
-                s.dot,
-                { borderColor: theme.border, backgroundColor: theme.surface2 },
-                i < done && { backgroundColor: theme.accent, borderColor: theme.accent },
-              ]}
-              onPress={i === done ? onLog : undefined}
-            >
-              {i < done && <Icon name="check" size={14} color="#fff" />}
-              {i === done && <Icon name="plus" size={14} color={theme.textMuted} />}
-            </Pressable>
-          ))}
+          {Array.from({ length: goal.targetCount }).map((_, i) => {
+            let onPress;
+            if (i === done) onPress = onLog;
+            else if (i === done - 1) onPress = onUndo;
+
+            return (
+              <Pressable
+                key={i}
+                style={[
+                  s.dot,
+                  { borderColor: theme.border, backgroundColor: theme.surface2 },
+                  i < done && { backgroundColor: theme.accent, borderColor: theme.accent },
+                ]}
+                onPress={onPress}
+              >
+                {i < done && <Icon name="check" size={14} color="#fff" />}
+                {i === done && <Icon name="plus" size={14} color={theme.textMuted} />}
+              </Pressable>
+            );
+          })}
         </View>
       </View>
     </SwipeableRow>

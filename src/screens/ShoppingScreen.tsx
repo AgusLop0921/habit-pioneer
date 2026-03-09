@@ -158,7 +158,7 @@ export default function ShoppingScreen() {
           type="shopping"
           initialData={editItem}
           onClose={() => setEditItem(null)}
-          onSave={(data) => editShoppingItem(editItem.id, data)}
+          onSave={(data) => editShoppingItem(editItem.id, data as Partial<Omit<ShoppingItem, 'id'>>)}
         />
       )}
     </SafeAreaView>

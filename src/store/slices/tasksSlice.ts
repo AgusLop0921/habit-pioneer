@@ -7,7 +7,7 @@ export const createTasksSlice: StateCreator<Store, [], [], TasksSlice> = (set) =
 
   addTask: (task) =>
     set((s) => ({
-      tasks: [...s.tasks, { ...task, id: Crypto.randomUUID(), completed: false }],
+      tasks: [...s.tasks, { category: 'personal', ...task, id: Crypto.randomUUID(), completed: false }],
     })),
 
   editTask: (id, updates) =>

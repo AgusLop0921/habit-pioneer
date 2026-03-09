@@ -2,7 +2,8 @@
  * Central type definitions for the Zustand store.
  * All slice interfaces live here to avoid circular imports.
  */
-import type { Habit, Task, WeeklyGoal, ShoppingItem, Language, ThemeMode } from '@/types';
+import type { Habit, Task, TaskCategory, WeeklyGoal, ShoppingItem, Language, ThemeMode } from '@/types';
+import type { CategoriesSlice } from './slices/categoriesSlice';
 
 // ── Slice interfaces ──────────────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ export interface HabitsSlice {
 
 export interface TasksSlice {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'completed'>) => void;
+  addTask: (task: Omit<Task, 'id' | 'completed' | 'category'> & { category?: TaskCategory }) => void;
   editTask: (id: string, updates: Partial<Omit<Task, 'id'>>) => void;
   removeTask: (id: string) => void;
   toggleTask: (id: string) => void;
@@ -30,6 +31,7 @@ export interface GoalsSlice {
   editWeeklyGoal: (id: string, updates: Partial<Omit<WeeklyGoal, 'id'>>) => void;
   removeWeeklyGoal: (id: string) => void;
   logGoalCompletion: (id: string) => void;
+  undoGoalCompletion: (id: string) => void;
 }
 
 export interface ShoppingSlice {
@@ -57,4 +59,5 @@ export type Store = HabitsSlice &
   GoalsSlice &
   ShoppingSlice &
   SettingsSlice &
-  StatsSlice;
+  StatsSlice &
+  CategoriesSlice;

@@ -10,6 +10,7 @@ import { createGoalsSlice } from '@/store/slices/goalsSlice';
 import { createShoppingSlice } from '@/store/slices/shoppingSlice';
 import { createSettingsSlice } from '@/store/slices/settingsSlice';
 import { createStatsSlice } from '@/store/slices/statsSlice';
+import { createCategoriesSlice } from '@/store/slices/categoriesSlice';
 
 export function makeStore() {
   return create<Store>()((...a) => ({
@@ -19,5 +20,6 @@ export function makeStore() {
     ...createShoppingSlice(...a),
     ...createSettingsSlice(...a),
     ...createStatsSlice(...a),
+    ...createCategoriesSlice(...a),
   }));
 }

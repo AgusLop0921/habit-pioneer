@@ -130,7 +130,6 @@ function SetupView({ onStart, onOpenSettings }: { onStart: () => void; onOpenSet
             priority: 'medium',
             date: today,
             category: newTaskCategory,
-            reminderEnabled: false,
         });
         // Find the freshly added task by title
         const fresh = useStore.getState().tasks.find(

@@ -33,9 +33,6 @@ export interface Task {
   date: string;
   completed: boolean;
   category: TaskCategory;
-  scheduledTime?: string; // HH:mm
-  reminderEnabled: boolean;
-  reminderNotifId?: string;
   userId?: string;
 }
 

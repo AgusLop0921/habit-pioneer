@@ -139,7 +139,6 @@ export const usePomodoroStore = create<PomodoroStore>()(
 
             completeSession: async () => {
                 const { currentMode, settings, sessions, sessionCount, linkedTaskId } = get();
-                LiveActivityService.stop();
 
                 // 1. Record the session
                 const durationSeconds = get().getModeDurationSeconds(currentMode);

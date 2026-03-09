@@ -28,7 +28,7 @@ function makeHabit(overrides: Partial<Habit> & { id: string }): Habit {
 }
 
 function makeTask(overrides: Partial<Task> & { id: string }): Task {
-  return { title: 'T', priority: 'medium', date: TODAY_STR, completed: false, ...overrides };
+  return { title: 'T', priority: 'medium', date: TODAY_STR, completed: false, category: 'personal', ...overrides };
 }
 
 describe('useProgress — empty store', () => {
