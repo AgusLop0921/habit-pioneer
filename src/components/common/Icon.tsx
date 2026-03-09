@@ -29,6 +29,7 @@ const ICON_MAP = {
   sun: { set: 'ion', name: 'sunny' },
   moon: { set: 'ion', name: 'moon' },
   chevronDown: { set: 'ion', name: 'chevron-down' },
+  chevronRight: { set: 'ion', name: 'chevron-forward' },
   check: { set: 'ion', name: 'checkmark' },
   checkCircle: { set: 'ion', name: 'checkmark-circle' },
   plus: { set: 'ion', name: 'add' },

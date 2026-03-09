@@ -144,7 +144,7 @@ function SetupView({ onStart, onOpenSettings }: { onStart: () => void; onOpenSet
     return (
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={sv.setupContent}>
             {/* Header */}
-            <View style={sv.setupHeader}>
+            <View style={[sv.setupHeader, { paddingRight: 40 }]}>
                 <Text style={[sv.setupTitle, { color: theme.text }]}>Nuevo Pomodoro</Text>
                 <Pressable onPress={onOpenSettings} style={sv.settingsBtn}>
                     <Ionicons name="settings-outline" size={20} color={theme.textSecondary} />

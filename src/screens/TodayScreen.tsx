@@ -23,6 +23,7 @@ import BottomModal from '@/components/common/BottomModal';
 import EditModal from '@/components/common/EditModal';
 import SettingsBar from '@/components/common/SettingsBar';
 import FormInput from '@/components/common/FormInput';
+import Icon from '@/components/common/Icon';
 import ProgressRing from '@/components/common/ProgressRing';
 import WeekStrip from '@/components/common/WeekStrip';
 import { Spacing, Radius, type AppTheme } from '@/theme';
@@ -98,6 +99,12 @@ export default function TodayScreen() {
   const [newCatName, setNewCatName] = useState('');
   const [newCatEmoji, setNewCatEmoji] = useState('');
 
+  // Expandable sections
+  const [isTasksExpanded, setIsTasksExpanded] = useState(true);
+  const [isDailyHabitsExpanded, setIsDailyHabitsExpanded] = useState(true);
+  const [isWeeklyHabitsExpanded, setIsWeeklyHabitsExpanded] = useState(true);
+  const [isMonthlyHabitsExpanded, setIsMonthlyHabitsExpanded] = useState(true);
+
   // Store
   const getAllCategories = useStore((s) => s.getAllCategories);
   const addTaskCategory = useStore((s) => s.addTaskCategory);
@@ -158,7 +165,15 @@ export default function TodayScreen() {
 
   const filteredTasks = todayTasks.filter(
     (t) => categoryFilter === 'all' || t.category === categoryFilter
-  );
+  ).sort((a, b) => {
+    // Tareas completadas van al final
+    if (a.completed && !b.completed) return 1;
+    if (!a.completed && b.completed) return -1;
+
+    // Orden de prioridad (alto primero)
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
 
   const s = makeStyles(theme);
 
@@ -215,74 +230,91 @@ export default function TodayScreen() {
         {(todayTasks.length > 0 || true) && (
           <View style={s.section}>
             <View style={s.sectionHeader}>
-              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
-                {t('tasksSection')}
-              </Text>
+              <Pressable
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setIsTasksExpanded(!isTasksExpanded);
+                }}
+              >
+                <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
+                  {t('tasksSection')}
+                </Text>
+                <Icon
+                  name={isTasksExpanded ? 'chevronDown' : 'chevronRight'}
+                  size={16}
+                  color={theme.textSecondary}
+                />
+              </Pressable>
               <Pressable onPress={() => setModalTask(true)}>
                 <Text style={[s.sectionAction, { color: theme.accent }]}>{t('newTask')}</Text>
               </Pressable>
             </View>
 
-            {/* Category Filter Chips - scrollable */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
-              <View style={[s.filterRow, { marginBottom: 0 }]}>
-                {/* All chip */}
-                <Pressable
-                  style={[
-                    s.filterChip,
-                    { backgroundColor: theme.surface2 },
-                    categoryFilter === 'all' && { backgroundColor: theme.accent, borderColor: theme.accent }
-                  ]}
-                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter('all'); }}
-                >
-                  <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === 'all' && { color: '#fff' }]}>
-                    {t('task.category.filter.all')}
-                  </Text>
-                </Pressable>
+            {isTasksExpanded && (
+              <>
+                {/* Category Filter Chips - scrollable */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
+                  <View style={[s.filterRow, { marginBottom: 0 }]}>
+                    {/* All chip */}
+                    <Pressable
+                      style={[
+                        s.filterChip,
+                        { backgroundColor: theme.surface2 },
+                        categoryFilter === 'all' && { backgroundColor: theme.accent, borderColor: theme.accent }
+                      ]}
+                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter('all'); }}
+                    >
+                      <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === 'all' && { color: '#fff' }]}>
+                        {t('task.category.filter.all')}
+                      </Text>
+                    </Pressable>
 
-                {/* Dynamic category chips */}
-                {allCategories.map((cat) => (
-                  <Pressable
-                    key={cat.id}
-                    style={[
-                      s.filterChip,
-                      { backgroundColor: theme.surface2 },
-                      categoryFilter === cat.id && { backgroundColor: theme.accent, borderColor: theme.accent }
-                    ]}
-                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter(cat.id); }}
-                  >
-                    <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === cat.id && { color: '#fff' }]}>
-                      {cat.emoji} {cat.label}
-                    </Text>
-                  </Pressable>
-                ))}
+                    {/* Dynamic category chips */}
+                    {allCategories.map((cat) => (
+                      <Pressable
+                        key={cat.id}
+                        style={[
+                          s.filterChip,
+                          { backgroundColor: theme.surface2 },
+                          categoryFilter === cat.id && { backgroundColor: theme.accent, borderColor: theme.accent }
+                        ]}
+                        onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter(cat.id); }}
+                      >
+                        <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === cat.id && { color: '#fff' }]}>
+                          {cat.emoji} {cat.label}
+                        </Text>
+                      </Pressable>
+                    ))}
 
-                {/* Add custom category button */}
-                <Pressable
-                  style={[s.filterChip, { backgroundColor: theme.surface2, borderStyle: 'dashed', borderWidth: 1, borderColor: theme.accent }]}
-                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setModalNewCategory(true); }}
-                >
-                  <Text style={[s.filterText, { color: theme.accent }]}>+ Nueva</Text>
-                </Pressable>
-              </View>
-            </ScrollView>
+                    {/* Add custom category button */}
+                    <Pressable
+                      style={[s.filterChip, { backgroundColor: theme.surface2, borderStyle: 'dashed', borderWidth: 1, borderColor: theme.accent }]}
+                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setModalNewCategory(true); }}
+                    >
+                      <Text style={[s.filterText, { color: theme.accent }]}>+ Nueva</Text>
+                    </Pressable>
+                  </View>
+                </ScrollView>
 
-            {filteredTasks.length === 0 ? (
-              <Text style={[s.emptyInline, { color: theme.textMuted }]}>{t('emptyTasks')}</Text>
-            ) : (
-              filteredTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggle={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    toggleTask(task.id);
-                  }}
-                  onDelete={() => removeTask(task.id)}
-                  onEdit={() => setEditItem({ type: 'task', data: task })}
-                  priorityLabel={t(`priority.${task.priority}`)}
-                />
-              ))
+                {filteredTasks.length === 0 ? (
+                  <Text style={[s.emptyInline, { color: theme.textMuted }]}>{t('emptyTasks')}</Text>
+                ) : (
+                  filteredTasks.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        toggleTask(task.id);
+                      }}
+                      onDelete={() => removeTask(task.id)}
+                      onEdit={() => setEditItem({ type: 'task', data: task })}
+                      priorityLabel={t(`priority.${task.priority}`)}
+                    />
+                  ))
+                )}
+              </>
             )}
           </View>
         )}
@@ -290,83 +322,128 @@ export default function TodayScreen() {
         {/* Daily habits */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>{t('dailyHabits')}</Text>
+            <Pressable
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setIsDailyHabitsExpanded(!isDailyHabitsExpanded);
+              }}
+            >
+              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>{t('dailyHabits')}</Text>
+              <Icon
+                name={isDailyHabitsExpanded ? 'chevronDown' : 'chevronRight'}
+                size={16}
+                color={theme.textSecondary}
+              />
+            </Pressable>
             <Pressable onPress={() => setModalHabit(true)}>
               <Text style={[s.sectionAction, { color: theme.accent }]}>{t('newHabit')}</Text>
             </Pressable>
           </View>
-          {dailyHabits.length === 0 ? (
-            <View style={[s.emptyCard, { backgroundColor: theme.surface }]}>
-              <Text style={s.emptyBig}>✨</Text>
-              <Text style={[s.emptyTitle, { color: theme.text }]}>{t('habitsEmpty.title')}</Text>
-              <Text style={[s.emptyDesc, { color: theme.textSecondary }]}>
-                {t('habitsEmpty.desc')}
-              </Text>
-              <Pressable
-                style={[s.emptyBtn, { backgroundColor: theme.accent }]}
-                onPress={() => setModalHabit(true)}
-              >
-                <Text style={s.emptyBtnText}>{t('newHabit')}</Text>
-              </Pressable>
-            </View>
-          ) : (
-            dailyHabits.map((h) => (
-              <HabitCard
-                key={h.id}
-                habit={h}
-                done={isHabitDone(h)}
-                onToggle={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  toggleHabit(h.id);
-                }}
-                onDelete={() => removeHabit(h.id)}
-                onEdit={() => setEditItem({ type: 'habit', data: h })}
-              />
-            ))
+          {isDailyHabitsExpanded && (
+            dailyHabits.length === 0 ? (
+              <View style={[s.emptyCard, { backgroundColor: theme.surface }]}>
+                <Text style={s.emptyBig}>✨</Text>
+                <Text style={[s.emptyTitle, { color: theme.text }]}>{t('habitsEmpty.title')}</Text>
+                <Text style={[s.emptyDesc, { color: theme.textSecondary }]}>
+                  {t('habitsEmpty.desc')}
+                </Text>
+                <Pressable
+                  style={[s.emptyBtn, { backgroundColor: theme.accent }]}
+                  onPress={() => setModalHabit(true)}
+                >
+                  <Text style={s.emptyBtnText}>{t('newHabit')}</Text>
+                </Pressable>
+              </View>
+            ) : (
+              dailyHabits.map((h) => (
+                <HabitCard
+                  key={h.id}
+                  habit={h}
+                  done={isHabitDone(h)}
+                  onToggle={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    toggleHabit(h.id);
+                  }}
+                  onDelete={() => removeHabit(h.id)}
+                  onEdit={() => setEditItem({ type: 'habit', data: h })}
+                />
+              ))
+            )
           )}
         </View>
 
         {/* Weekly habits */}
         {weeklyHabits.length > 0 && (
           <View style={s.section}>
-            <Text style={[s.sectionTitle, { color: theme.textSecondary, marginBottom: 10 }]}>
-              {t('weeklyHabits')}
-            </Text>
-            {weeklyHabits.map((h) => (
-              <HabitCard
-                key={h.id}
-                habit={h}
-                done={isHabitDone(h)}
-                onToggle={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  toggleHabit(h.id);
-                }}
-                onDelete={() => removeHabit(h.id)}
-                onEdit={() => setEditItem({ type: 'habit', data: h })}
+            <Pressable
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setIsWeeklyHabitsExpanded(!isWeeklyHabitsExpanded);
+              }}
+            >
+              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
+                {t('weeklyHabits')}
+              </Text>
+              <Icon
+                name={isWeeklyHabitsExpanded ? 'chevronDown' : 'chevronRight'}
+                size={16}
+                color={theme.textSecondary}
               />
-            ))}
+            </Pressable>
+            {isWeeklyHabitsExpanded && (
+              weeklyHabits.map((h) => (
+                <HabitCard
+                  key={h.id}
+                  habit={h}
+                  done={isHabitDone(h)}
+                  onToggle={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    toggleHabit(h.id);
+                  }}
+                  onDelete={() => removeHabit(h.id)}
+                  onEdit={() => setEditItem({ type: 'habit', data: h })}
+                />
+              ))
+            )}
           </View>
         )}
 
         {/* Monthly habits */}
         {monthlyHabits.length > 0 && (
           <View style={s.section}>
-            <Text style={[s.sectionTitle, { color: theme.textSecondary, marginBottom: 10 }]}>
-              {t('monthlyHabits')}
-            </Text>
-            {monthlyHabits.map((h) => (
-              <HabitCard
-                key={h.id}
-                habit={h}
-                done={isHabitDone(h)}
-                onToggle={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  toggleHabit(h.id);
-                }}
-                onDelete={() => removeHabit(h.id)}
-                onEdit={() => setEditItem({ type: 'habit', data: h })}
+            <Pressable
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setIsMonthlyHabitsExpanded(!isMonthlyHabitsExpanded);
+              }}
+            >
+              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
+                {t('monthlyHabits')}
+              </Text>
+              <Icon
+                name={isMonthlyHabitsExpanded ? 'chevronDown' : 'chevronRight'}
+                size={16}
+                color={theme.textSecondary}
               />
-            ))}
+            </Pressable>
+            {isMonthlyHabitsExpanded && (
+              monthlyHabits.map((h) => (
+                <HabitCard
+                  key={h.id}
+                  habit={h}
+                  done={isHabitDone(h)}
+                  onToggle={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    toggleHabit(h.id);
+                  }}
+                  onDelete={() => removeHabit(h.id)}
+                  onEdit={() => setEditItem({ type: 'habit', data: h })}
+                />
+              ))
+            )}
           </View>
         )}
 

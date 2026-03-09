@@ -17,7 +17,10 @@ import { Radius } from '../../theme';
 
 const ACTION_W = 75; // ancho de cada botón
 const TOTAL_REV = ACTION_W * 2; // total que se revela
-const THRESHOLD = 40; // px para hacer snap a abierto
+const THRESHOLD = 30; // px para hacer snap a abierto
+
+// Global reference to ensure only one row is open at a time
+let currentlyOpenRow: (() => void) | null = null;
 
 interface Props {
   children: React.ReactNode;
@@ -49,11 +52,24 @@ export default function SwipeableRow({
 
   const snapTo = (toValue: number, cb?: () => void) => {
     isOpen.current = toValue !== 0;
+
+    // Manage global state for single open row
+    if (toValue !== 0) {
+      if (currentlyOpenRow && currentlyOpenRow !== close) {
+        currentlyOpenRow();
+      }
+      currentlyOpenRow = close;
+    } else {
+      if (currentlyOpenRow === close) {
+        currentlyOpenRow = null;
+      }
+    }
+
     Animated.spring(translateX, {
       toValue,
       useNativeDriver: true,
-      tension: 80,
-      friction: 12,
+      tension: 60,
+      friction: 8,
     }).start(cb);
     lastOffset.current = toValue;
   };
@@ -67,11 +83,15 @@ export default function SwipeableRow({
   const pan = useRef(
     PanResponder.create({
       // Captura gestos más horizontales que verticales
-      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 5 && Math.abs(g.dy) < Math.abs(g.dx),
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 10 && Math.abs(g.dy) < Math.abs(g.dx),
 
       onPanResponderGrant: () => {
         translateX.setOffset(lastOffset.current);
         translateX.setValue(0);
+        // Si hay otra fila abierta, la cerramos inmediatamente al empezar a deslizar
+        if (currentlyOpenRow && currentlyOpenRow !== close) {
+          currentlyOpenRow();
+        }
       },
 
       onPanResponderMove: (_, g) => {
@@ -85,12 +105,18 @@ export default function SwipeableRow({
         const velocity = g.vx;
         const current = lastOffset.current + g.dx;
 
-        // Snap: si pasó el umbral o velocidad suficiente → abrir, sino cerrar
-        if (current < -THRESHOLD || velocity < -0.3) {
+        // Snap: si pasó el umbral o velocidad hacia la izquierda → abrir, sino cerrar
+        if ((current < -THRESHOLD && velocity <= 0.2) || velocity < -0.3) {
           open();
         } else {
           close();
         }
+      },
+
+      onPanResponderTerminate: () => {
+        // En caso de que el ScrollView capture el evento (o se cancele el gesto)
+        translateX.flattenOffset();
+        close();
       },
     })
   ).current;

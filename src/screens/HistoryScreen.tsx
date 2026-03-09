@@ -12,7 +12,7 @@ import PomodoroStatsCard from '@/components/history/PomodoroStatsCard';
 import { Spacing, Radius, type AppTheme } from '@/theme';
 
 const SCREEN_W = Dimensions.get('window').width;
-const CHART_W = SCREEN_W - 48;
+const CHART_W = SCREEN_W - 64; // Reducimos el ancho para que no se corte a la derecha
 const CHART_H = 160;
 
 type Range = '7D' | '31D' | '26W' | '12M';
@@ -155,15 +155,16 @@ export default function HistoryScreen() {
 
               {/* Line chart */}
               <View style={s.chartWrap}>
-                <Svg width={CHART_W} height={CHART_H + 20}>
+                <Svg width={CHART_W + 40} height={CHART_H + 20}>
                   {/* Y labels */}
                   {[0, 50, 100].map((val) => (
                     <SvgText
                       key={val}
-                      x={0}
-                      y={CHART_H - (val / 100) * CHART_H + 5}
+                      x={30} // Movemos los labels un poco más a la derecha para que no se corten
+                      y={CHART_H - (val / 100) * CHART_H + 4}
                       fontSize={10}
                       fill={theme.textSecondary}
+                      textAnchor="end" // Alineamos el texto a la derecha
                     >
                       {val}%
                     </SvgText>
@@ -172,9 +173,9 @@ export default function HistoryScreen() {
                   {[0, 50, 100].map((val) => (
                     <Line
                       key={val}
-                      x1={32}
+                      x1={40} // Separamos la grilla de los labels
                       y1={CHART_H - (val / 100) * CHART_H}
-                      x2={CHART_W}
+                      x2={CHART_W + 40} // Aumentamos la grilla
                       y2={CHART_H - (val / 100) * CHART_H}
                       stroke={theme.borderDim}
                       strokeWidth={1}
@@ -185,7 +186,7 @@ export default function HistoryScreen() {
                     <Polyline
                       points={dataPoints
                         .map((val, i) => {
-                          const x = 32 + (i / Math.max(dataPoints.length - 1, 1)) * (CHART_W - 32);
+                          const x = 40 + (i / Math.max(dataPoints.length - 1, 1)) * CHART_W;
                           const y = CHART_H - (val / 100) * CHART_H;
                           return `${x},${y}`;
                         })
@@ -199,7 +200,7 @@ export default function HistoryScreen() {
                   )}
                   {/* Dots */}
                   {dataPoints.map((val, i) => {
-                    const x = 32 + (i / Math.max(dataPoints.length - 1, 1)) * (CHART_W - 32);
+                    const x = 40 + (i / Math.max(dataPoints.length - 1, 1)) * CHART_W;
                     const y = CHART_H - (val / 100) * CHART_H;
                     if (val === 0) return null;
                     return <SvgCircle key={i} cx={x} cy={y} r={4} fill={theme.accent} />;
@@ -207,7 +208,7 @@ export default function HistoryScreen() {
                 </Svg>
 
                 {/* X labels */}
-                <View style={s.xLabels}>
+                <View style={[s.xLabels, { paddingLeft: 40, paddingRight: 0 }]}>
                   {(range === '7D'
                     ? days
                     : days.filter((_, i) => i % Math.floor(days.length / 6) === 0)
@@ -297,7 +298,7 @@ export default function HistoryScreen() {
                     ]}
                   >
                     <View style={s.habitHistHeader}>
-                      <Text style={s.habitHistEmoji}>⭐</Text>
+                      <Text style={s.habitHistEmoji}>{h.emoji || '⭐'}</Text>
                       <View style={{ flex: 1 }}>
                         <Text style={[s.habitHistName, { color: theme.text }]}>{h.name}</Text>
                         <Text style={[s.habitHistStats, { color: theme.textSecondary }]}>
