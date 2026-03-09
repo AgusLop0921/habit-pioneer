@@ -14,8 +14,11 @@ export function useTasks(selectedDate: Date = new Date()) {
   const doneCount = tasksForDate.filter((t) => t.completed).length;
   const totalCount = tasksForDate.length;
 
-  const addTaskForDate = (title: string, priority: import('@/types').Priority) =>
-    addTask({ title, priority, date: dateStr });
+  const addTaskForDate = (
+    title: string,
+    priority: import('@/types').Priority,
+    extra?: Partial<Omit<import('@/types').Task, 'id' | 'completed'>>
+  ) => addTask({ title, priority, date: dateStr, ...extra } as any);
 
   return {
     tasks: tasksForDate,

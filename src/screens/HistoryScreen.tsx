@@ -8,6 +8,7 @@ import { useHistory, useDateLocale } from '@/hooks';
 import { useTheme } from '@/context/ThemeContext';
 import SettingsBar from '@/components/common/SettingsBar';
 import Icon, { IconName } from '@/components/common/Icon';
+import PomodoroStatsCard from '@/components/history/PomodoroStatsCard';
 import { Spacing, Radius, type AppTheme } from '@/theme';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -112,7 +113,9 @@ export default function HistoryScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* ── TRENDS ── */}
         {view === 'trends' && (
-          <>
+          <View style={{ paddingHorizontal: Spacing.lg, paddingTop: Spacing.md }}>
+            <PomodoroStatsCard />
+
             {/* Stats row */}
             <View style={s.statsRow}>
               {[
@@ -247,7 +250,7 @@ export default function HistoryScreen() {
                 </Pressable>
               </View>
             </View>
-          </>
+          </View>
         )}
 
         {/* ── HABITS ── */}
@@ -324,7 +327,7 @@ export default function HistoryScreen() {
                                   s.miniBar,
                                   { backgroundColor: isDone ? theme.accent : theme.surface2 },
                                   isToday &&
-                                    isDone && { backgroundColor: theme.accent, height: 48 },
+                                  isDone && { backgroundColor: theme.accent, height: 48 },
                                 ]}
                               />
                               <Text style={[s.miniBarLabel, { color: theme.textSecondary }]}>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Switch } from 'react-native';
 import BottomModal from './BottomModal';
 import OrangeButton from './OrangeButton';
 import { useTheme } from '@/context/ThemeContext';
 import { Spacing, Radius, type AppTheme } from '@/theme';
-import { Priority, Frequency, ShopCategory } from '@/types';
+import { Priority, Frequency, ShopCategory, TaskCategory } from '@/types';
 import { useTranslation } from 'react-i18next';
 
 export type EditModalType = 'task' | 'goal' | 'shopping' | 'habit';
@@ -16,7 +16,9 @@ export type EditModalInitialData = {
   targetCount?: number;
   name?: string;
   quantity?: number;
-  category?: ShopCategory;
+  category?: ShopCategory | TaskCategory;
+  reminderEnabled?: boolean;
+  scheduledTime?: string;
   description?: string;
   emoji?: string;
   frequency?: Frequency;
@@ -37,6 +39,9 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
   // Task fields
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState<Priority>('medium');
+  const [taskCategory, setTaskCategory] = useState<TaskCategory>('personal');
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState('09:00');
   // Goal fields
   const [goalTitle, setGoalTitle] = useState('');
   const [goalTarget, setGoalTarget] = useState('3');
@@ -55,13 +60,16 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
     if (type === 'task') {
       setTaskTitle(initialData.title ?? '');
       setTaskPriority(initialData.priority ?? 'medium');
+      setTaskCategory((initialData.category as TaskCategory) ?? 'personal');
+      setReminderEnabled(initialData.reminderEnabled ?? false);
+      setReminderTime(initialData.scheduledTime ?? '09:00');
     } else if (type === 'goal') {
       setGoalTitle(initialData.title ?? '');
       setGoalTarget(String(initialData.targetCount ?? 3));
     } else if (type === 'shopping') {
       setShopName(initialData.name ?? '');
       setShopQty(String(initialData.quantity ?? 1));
-      setShopCat(initialData.category ?? 'general');
+      setShopCat((initialData.category as ShopCategory) ?? 'general');
     } else if (type === 'habit') {
       setHabitName(initialData.name ?? '');
       setHabitDesc(initialData.description ?? '');
@@ -73,7 +81,13 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
   const handleSave = () => {
     if (type === 'task') {
       if (!taskTitle.trim()) return;
-      onSave({ title: taskTitle.trim(), priority: taskPriority });
+      onSave({
+        title: taskTitle.trim(),
+        priority: taskPriority,
+        category: taskCategory,
+        reminderEnabled,
+        scheduledTime: reminderEnabled ? reminderTime : undefined,
+      });
     } else if (type === 'goal') {
       if (!goalTitle.trim()) return;
       onSave({ title: goalTitle.trim(), targetCount: parseInt(goalTarget) || 3 });
@@ -139,6 +153,45 @@ export default function EditModal({ visible, type, initialData, onSave, onClose 
               </Pressable>
             ))}
           </View>
+
+          <Text style={s.label}>{t('task.category.label')}</Text>
+          <View style={s.segRow}>
+            {(['personal', 'work'] as TaskCategory[]).map((c) => (
+              <Pressable
+                key={c}
+                style={[s.seg, taskCategory === c && s.segActive]}
+                onPress={() => setTaskCategory(c)}
+              >
+                <Text style={[s.segText, taskCategory === c && s.segTextActive]}>
+                  {c === 'work' ? '💼 ' : '🏠 '}
+                  {t(`task.category.${c}`)}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <View style={s.reminderRow}>
+            <View>
+              <Text style={[s.label, { marginBottom: 0 }]}>{t('task.form.reminder')}</Text>
+              {reminderEnabled && <Text style={s.reminderTimeSub}>{reminderTime}</Text>}
+            </View>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={setReminderEnabled}
+              trackColor={{ false: theme.surface3, true: theme.accent }}
+              thumbColor="#fff"
+            />
+          </View>
+
+          {reminderEnabled && (
+            <TextInput
+              style={[s.input, { marginTop: Spacing.sm }]}
+              value={reminderTime}
+              onChangeText={setReminderTime}
+              placeholder="09:00"
+              placeholderTextColor={theme.textMuted}
+            />
+          )}
         </>
       )}
 
@@ -309,4 +362,20 @@ const makeStyles = (theme: AppTheme) =>
     catText: { fontSize: 13, color: theme.textSecondary, fontWeight: '500' },
     catTextActive: { color: theme.orange },
     actions: { flexDirection: 'row', gap: 10, marginTop: Spacing.md },
+    reminderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: theme.surface2,
+      padding: Spacing.md,
+      borderRadius: Radius.lg,
+      marginTop: 4,
+    },
+    reminderTimeSub: {
+      fontSize: 12,
+      color: theme.accent,
+      fontWeight: '700',
+      marginTop: 2,
+    },
   });
+

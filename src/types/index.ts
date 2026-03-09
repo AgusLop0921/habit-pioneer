@@ -15,12 +15,27 @@ export interface Habit {
   userId?: string;
 }
 
+// TaskCategory is a string so it can hold built-in ids ('work','personal','sport')
+// as well as user-created category ids.
+export type TaskCategory = string;
+
+export interface TaskCategoryDef {
+  id: TaskCategory;
+  label: string;
+  emoji: string;
+  isBuiltIn: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;
   priority: Priority;
   date: string;
   completed: boolean;
+  category: TaskCategory;
+  scheduledTime?: string; // HH:mm
+  reminderEnabled: boolean;
+  reminderNotifId?: string;
   userId?: string;
 }
 
@@ -61,18 +76,42 @@ export interface SleepChecklistItem {
 }
 
 export interface SleepLog {
-  date: string;
-  checklistDone: string[];
-  hoursSlept: number;
-  quality: number;
+  nightDate: string;  // YYYY-MM-DD — date of the NIGHT (when you went to bed)
+  bedtime: string;    // HH:mm
+  wakeTime: string;   // HH:mm
+  totalMinutes: number; // auto-calculated
+  hoursSlept: number;   // legacy / convenience field
+  quality: number;      // 0-5 star rating
   wakeUps: number;
-  bedtime: string;
-  wakeTime: string;
+  checklistDone: string[];
   notes?: string;
+  // legacy compat
+  date?: string;
 }
 
 export interface SleepState {
   isEnrolled: boolean;
   onboardingDone: boolean;
   logs: Record<string, SleepLog>;
+}
+
+// ── Pomodoro ───────────────────────────────────────────────
+export type PomodoroMode = 'work' | 'shortBreak' | 'longBreak';
+export type PomodoroStatus = 'idle' | 'running' | 'paused' | 'completed';
+
+export interface PomodoroSession {
+  id: string;
+  mode: PomodoroMode;
+  linkedTaskId?: string;
+  durationSeconds: number;
+  completedAt: string; // ISO
+}
+
+export interface PomodoroSettings {
+  workDuration: number;       // minutes
+  shortBreakDuration: number; // minutes
+  longBreakDuration: number;  // minutes
+  sessionsUntilLongBreak: number;
+  autoStartBreak: boolean;
+  soundEnabled: boolean;
 }

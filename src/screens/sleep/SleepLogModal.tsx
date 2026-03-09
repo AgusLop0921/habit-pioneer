@@ -209,7 +209,16 @@ export default function SleepLogModal({
           </Pressable>
           <View style={s.headerCenter}>
             <Text style={[s.headerTitle, { color: theme.text }]}>{t('sleep.log.title')}</Text>
-            <Text style={[s.headerSub, { color: theme.textSecondary }]}>{date}</Text>
+            <Text style={[s.headerSub, { color: theme.textSecondary }]}>
+              {(() => {
+                const bedDate = new Date(date + 'T12:00:00');
+                const wakeDate = new Date(bedDate);
+                wakeDate.setDate(wakeDate.getDate() + 1);
+                const fmt = (d: Date) =>
+                  d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' });
+                return `${fmt(bedDate)} → ${fmt(wakeDate)}`;
+              })()}
+            </Text>
           </View>
           <View style={s.stepDots}>
             {[1, 2].map((n) => (

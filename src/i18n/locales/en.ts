@@ -6,6 +6,77 @@ export default {
     today: 'Today',
     habitsToday: 'Habits today',
     tasksToday: 'Tasks today',
+    task: {
+      category: {
+        label: 'Category',
+        work: 'Work',
+        personal: 'Personal',
+        sport: 'Sport',
+        filter: {
+          all: 'All',
+          work: 'Work',
+          personal: 'Personal',
+          sport: 'Sport',
+        },
+      },
+      reminder: {
+        title: '⏰ It\'s time!',
+        prompt: 'It\'s time for: {{title}}',
+      },
+      midday: {
+        title: '👀 Midday Check',
+        prompt: 'How are you doing with your tasks today?',
+        mixed: 'You have {{work}} work tasks and {{personal}} personal ones. Ready?',
+        work_only: 'You have {{count}} work tasks pending 💼',
+        personal_only: 'You have {{count}} personal tasks waiting 🏠',
+      },
+      form: {
+        reminder: 'Reminder',
+        time: 'Time',
+      },
+    },
+    pomodoro: {
+      work: {
+        complete: {
+          title: '🍅 Pomodoro completed!',
+          body: 'You did {{duration}} minutes of focused work. Time to rest! ☕️',
+        },
+      },
+      shortBreak: {
+        complete: {
+          title: '☕️ Break finished',
+          body: 'Back to work! You got this 💪',
+        },
+      },
+      longBreak: {
+        complete: {
+          title: '🌊 Long break finished',
+          body: 'Ready for another focus session?',
+        },
+      },
+    },
+    notifications: {
+      sleep: {
+        warning: {
+          title: '🌙 Start your night routine',
+          body: 'To wake up rested tomorrow, you should be in bed by {{time}}',
+        },
+        time: {
+          title: '😴 Time to sleep',
+          body: 'Your body will thank you tomorrow. Good night!',
+        },
+      },
+      settings: {
+        title: 'Notifications',
+        master: 'Enable notifications',
+        pomodoro: 'Pomodoro',
+        sleep: 'Sleep routine',
+        tasks: 'Task reminders',
+        midday: 'Midday check',
+        wakeTime: 'Wake up time',
+        middayTime: 'Check-in time',
+      },
+    },
     general: 'General',
     dailyHabits: 'Daily',
     weeklyHabits: 'Weekly',
@@ -109,6 +180,10 @@ export default {
       streak: 'Streak',
       longest: 'Longest',
       completed: 'Completed',
+      productivity: 'Productivity',
+      sessionsToday: 'Sessions today',
+      minutesToday: 'Focus minutes',
+      totalFocus: 'Total focus',
       days365: '365 days',
       weekDaysShort: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
     },
@@ -162,6 +237,8 @@ export default {
         register: 'Log',
         today: 'Today',
         yesterday: 'Yesterday',
+        lastNight: 'Last night',
+        tonight: 'Tonight',
         noRecord: 'Not logged',
         habitsCount: '{{count}}/16 habits',
         noWakeUps: 'No wake-ups',

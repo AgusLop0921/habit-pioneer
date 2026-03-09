@@ -7,11 +7,13 @@ import {
   Pressable,
   ActivityIndicator,
   AppState,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { format, isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
+import { Switch } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useHabits, useTasks, useProgress, useDateLocale, useHydration } from '@/hooks';
 import HabitCard from '@/components/habits/HabitCard';
@@ -26,6 +28,7 @@ import WeekStrip from '@/components/common/WeekStrip';
 import { Spacing, Radius, type AppTheme } from '@/theme';
 import type { Task, Habit } from '@/types';
 import { Priority, Frequency } from '@/types';
+import { useStore } from '@/store';
 
 export default function TodayScreen() {
   const { t } = useTranslation();
@@ -84,6 +87,24 @@ export default function TodayScreen() {
   const [habitEmoji, setHabitEmoji] = useState('');
   const [habitFreq, setHabitFreq] = useState<Frequency>('daily');
 
+  // Task category filter
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  // Modal specific state
+  const [taskCategory, setTaskCategory] = useState<string>('personal');
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState('09:00');
+
+  // Custom category creation
+  const [modalNewCategory, setModalNewCategory] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatEmoji, setNewCatEmoji] = useState('');
+
+  // Store
+  const getAllCategories = useStore((s) => s.getAllCategories);
+  const addTaskCategory = useStore((s) => s.addTaskCategory);
+  const allCategories = getAllCategories();
+
   const isToday = isSameDay(selectedDate, new Date());
 
   if (!hydrated) {
@@ -101,9 +122,15 @@ export default function TodayScreen() {
 
   const handleAddTask = () => {
     if (!taskTitle.trim()) return;
-    addTaskForDate(taskTitle.trim(), taskPriority);
+    addTaskForDate(taskTitle.trim(), taskPriority, {
+      category: taskCategory,
+      reminderEnabled,
+      scheduledTime: reminderEnabled ? reminderTime : undefined,
+    } as any);
     setTaskTitle('');
     setTaskPriority('medium');
+    setTaskCategory('personal');
+    setReminderEnabled(false);
     setModalTask(false);
   };
 
@@ -124,6 +151,20 @@ export default function TodayScreen() {
 
   const priorities: Priority[] = ['high', 'medium', 'low'];
   const frequencies: Frequency[] = ['daily', 'weekly', 'monthly'];
+
+  const handleCreateCategory = () => {
+    if (!newCatName.trim()) return;
+    const id = newCatName.trim().toLowerCase().replace(/\s+/g, '_');
+    addTaskCategory({ id, label: newCatName.trim(), emoji: newCatEmoji.trim() || '📌' });
+    setNewCatName('');
+    setNewCatEmoji('');
+    setModalNewCategory(false);
+  };
+
+  const filteredTasks = todayTasks.filter(
+    (t) => categoryFilter === 'all' || t.category === categoryFilter
+  );
+
   const s = makeStyles(theme);
 
   return (
@@ -186,10 +227,55 @@ export default function TodayScreen() {
                 <Text style={[s.sectionAction, { color: theme.accent }]}>{t('newTask')}</Text>
               </Pressable>
             </View>
-            {todayTasks.length === 0 ? (
+
+            {/* Category Filter Chips - scrollable */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
+              <View style={[s.filterRow, { marginBottom: 0 }]}>
+                {/* All chip */}
+                <Pressable
+                  style={[
+                    s.filterChip,
+                    { backgroundColor: theme.surface2 },
+                    categoryFilter === 'all' && { backgroundColor: theme.accent, borderColor: theme.accent }
+                  ]}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter('all'); }}
+                >
+                  <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === 'all' && { color: '#fff' }]}>
+                    {t('task.category.filter.all')}
+                  </Text>
+                </Pressable>
+
+                {/* Dynamic category chips */}
+                {allCategories.map((cat) => (
+                  <Pressable
+                    key={cat.id}
+                    style={[
+                      s.filterChip,
+                      { backgroundColor: theme.surface2 },
+                      categoryFilter === cat.id && { backgroundColor: theme.accent, borderColor: theme.accent }
+                    ]}
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter(cat.id); }}
+                  >
+                    <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === cat.id && { color: '#fff' }]}>
+                      {cat.emoji} {cat.label}
+                    </Text>
+                  </Pressable>
+                ))}
+
+                {/* Add custom category button */}
+                <Pressable
+                  style={[s.filterChip, { backgroundColor: theme.surface2, borderStyle: 'dashed', borderWidth: 1, borderColor: theme.accent }]}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setModalNewCategory(true); }}
+                >
+                  <Text style={[s.filterText, { color: theme.accent }]}>+ Nueva</Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+
+            {filteredTasks.length === 0 ? (
               <Text style={[s.emptyInline, { color: theme.textMuted }]}>{t('emptyTasks')}</Text>
             ) : (
-              todayTasks.map((task) => (
+              filteredTasks.map((task) => (
                 <TaskItem
                   key={task.id}
                   task={task}
@@ -329,6 +415,67 @@ export default function TodayScreen() {
             </Pressable>
           ))}
         </View>
+
+        <Text style={[s.formLabel, { color: theme.textSecondary, marginTop: Spacing.sm }]}>
+          {t('task.category.label')}
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={[s.segRow, { marginBottom: Spacing.md }]}>
+            {allCategories.map((c) => (
+              <Pressable
+                key={c.id}
+                style={[
+                  s.seg,
+                  { backgroundColor: theme.surface2, borderColor: theme.border },
+                  taskCategory === c.id && {
+                    backgroundColor: theme.accentDim,
+                    borderColor: theme.accent,
+                  },
+                ]}
+                onPress={() => setTaskCategory(c.id)}
+              >
+                <Text
+                  style={[
+                    s.segText,
+                    { color: theme.textSecondary },
+                    taskCategory === c.id && { color: theme.accent },
+                  ]}
+                >
+                  {c.emoji} {c.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+
+        <View style={s.reminderRow}>
+          <View>
+            <Text style={[s.formLabel, { color: theme.textSecondary, marginBottom: 0 }]}>
+              {t('task.form.reminder')}
+            </Text>
+            {reminderEnabled && (
+              <Text style={[s.reminderTimeSub, { color: theme.accent }]}>{reminderTime}</Text>
+            )}
+          </View>
+          <Switch
+            value={reminderEnabled}
+            onValueChange={setReminderEnabled}
+            trackColor={{ false: theme.surface3, true: theme.accent }}
+            thumbColor="#fff"
+          />
+        </View>
+
+        {reminderEnabled && (
+          <View style={s.timeInputRow}>
+            <FormInput
+              label={t('task.form.time')}
+              placeholder="09:00"
+              value={reminderTime}
+              onChangeText={setReminderTime}
+              containerStyle={{ flex: 1 }}
+            />
+          </View>
+        )}
         <View style={s.modalActions}>
           <OrangeButton
             label={t('actions.cancel')}
@@ -407,14 +554,47 @@ export default function TodayScreen() {
         <EditModal
           visible={!!editItem}
           type={editItem.type}
-          initialData={editItem.data}
+          initialData={editItem.data as any}
           onClose={() => setEditItem(null)}
           onSave={(data) => {
-            if (editItem.type === 'task') editTask(editItem.data.id, data);
-            else editHabit(editItem.data.id, data);
+            if (editItem.type === 'task') editTask(editItem.data.id, data as any);
+            else editHabit(editItem.data.id, data as any);
           }}
         />
       )}
+
+      {/* Modal: nueva categoría */}
+      <BottomModal visible={modalNewCategory} onClose={() => setModalNewCategory(false)}>
+        <Text style={[s.modalTitle, { color: theme.text }]}>Nueva categoría</Text>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: Spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <Text style={[s.formLabel, { color: theme.textSecondary }]}>Nombre *</Text>
+            <TextInput
+              placeholder="Ej: Finanzas"
+              placeholderTextColor={theme.textMuted}
+              value={newCatName}
+              onChangeText={setNewCatName}
+              style={[s.textInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface2 }]}
+              autoFocus
+            />
+          </View>
+          <View style={{ width: 72 }}>
+            <Text style={[s.formLabel, { color: theme.textSecondary }]}>Emoji</Text>
+            <TextInput
+              placeholder="📌"
+              placeholderTextColor={theme.textMuted}
+              value={newCatEmoji}
+              onChangeText={setNewCatEmoji}
+              maxLength={4}
+              style={[s.textInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface2, textAlign: 'center', fontSize: 22 }]}
+            />
+          </View>
+        </View>
+        <View style={s.modalActions}>
+          <OrangeButton label={t('actions.cancel')} onPress={() => setModalNewCategory(false)} variant="ghost" style={{ flex: 1 }} />
+          <OrangeButton label={t('actions.save')} onPress={handleCreateCategory} style={{ flex: 2 }} />
+        </View>
+      </BottomModal>
     </SafeAreaView>
   );
 }
@@ -486,4 +666,43 @@ const makeStyles = (_theme: AppTheme) =>
     habitNameRow: { flexDirection: 'row', gap: 8 },
     habitNameInput: { flex: 17, marginBottom: Spacing.md },
     habitEmojiInput: { flex: 4, marginBottom: Spacing.md },
+    filterRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: Spacing.md,
+    },
+    filterChip: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+    filterText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    reminderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: _theme.surface2,
+      padding: Spacing.md,
+      borderRadius: Radius.lg,
+      marginTop: Spacing.sm,
+    },
+    reminderTimeSub: {
+      fontSize: 12,
+      fontWeight: '700',
+      marginTop: 2,
+    },
+    timeInputRow: {
+      marginTop: Spacing.sm,
+    },
+    textInput: {
+      borderWidth: 1,
+      borderRadius: Radius.md,
+      padding: Spacing.sm,
+      fontSize: 15,
+    },
   });

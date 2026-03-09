@@ -1,19 +1,48 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SleepLog } from '../types';
+import type { SleepLog } from '../types';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const dateStr = (d: Date) => d.toISOString().split('T')[0];
+
+const subDaysDate = (n: number): Date => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d;
+};
+
+/** Calculate total minutes between bedtime (on nightDate) and wakeTime (next day if earlier) */
+function calcTotalMinutes(bedtime: string, wakeTime: string): number {
+  const [bh, bm] = bedtime.split(':').map(Number);
+  const [wh, wm] = wakeTime.split(':').map(Number);
+  const bedMin = bh * 60 + bm;
+  let wakeMin = wh * 60 + wm;
+  // If wake time is earlier or same as bed time → woke up next day
+  if (wakeMin <= bedMin) wakeMin += 24 * 60;
+  return wakeMin - bedMin;
+}
+
+// ── Store types ───────────────────────────────────────────────────────────────
 
 interface SleepStore {
   isEnrolled: boolean;
   onboardingDone: boolean;
+  /** Keyed by nightDate (YYYY-MM-DD) */
   logs: Record<string, SleepLog>;
 
   enroll: () => void;
   completeOnboarding: () => void;
 
-  saveLog: (date: string, log: Partial<SleepLog>) => void;
-  getLog: (date: string) => SleepLog | null;
+  saveLog: (nightDate: string, partial: Partial<Omit<SleepLog, 'nightDate' | 'totalMinutes'>>) => void;
+  getLog: (nightDate: string) => SleepLog | null;
+
+  // Night-of helpers
+  getLastNightLog: () => SleepLog | null;
+  getTonightLog: () => SleepLog | null;
   getLogsForRange: (days: number) => SleepLog[];
+
   getWeekAvg: (weeksAgo?: number) => {
     hours: number;
     quality: number;
@@ -23,22 +52,21 @@ interface SleepStore {
   getMonthAvg: () => { hours: number; quality: number; compliance: number };
 }
 
-const emptyLog = (date: string): SleepLog => ({
-  date,
+// ── Empty log factory ─────────────────────────────────────────────────────────
+
+const emptyLog = (nightDate: string): SleepLog => ({
+  nightDate,
+  date: nightDate, // legacy compat
   checklistDone: [],
   hoursSlept: 0,
+  totalMinutes: 0,
   quality: 0,
   wakeUps: 0,
   bedtime: '',
   wakeTime: '',
 });
 
-const dateStr = (d: Date) => d.toISOString().split('T')[0];
-const subDaysStr = (n: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return dateStr(d);
-};
+// ── Store ─────────────────────────────────────────────────────────────────────
 
 export const useSleepStore = create<SleepStore>()(
   persist(
@@ -50,17 +78,53 @@ export const useSleepStore = create<SleepStore>()(
       enroll: () => set({ isEnrolled: true }),
       completeOnboarding: () => set({ onboardingDone: true }),
 
-      saveLog: (date, partial) =>
-        set((s) => ({
-          logs: { ...s.logs, [date]: { ...emptyLog(date), ...s.logs[date], ...partial, date } },
-        })),
+      saveLog: (nightDate, partial) => {
+        const existing = get().logs[nightDate] ?? emptyLog(nightDate);
+        const bedtime = partial.bedtime ?? existing.bedtime ?? '23:00';
+        const wakeTime = partial.wakeTime ?? existing.wakeTime ?? '07:00';
+        const totalMinutes = bedtime && wakeTime ? calcTotalMinutes(bedtime, wakeTime) : 0;
+        const hoursSlept = Math.round((totalMinutes / 60) * 10) / 10;
 
-      getLog: (date) => get().logs[date] ?? null,
+        set((s) => ({
+          logs: {
+            ...s.logs,
+            [nightDate]: {
+              ...existing,
+              ...partial,
+              nightDate,
+              date: nightDate,
+              bedtime,
+              wakeTime,
+              totalMinutes,
+              hoursSlept,
+            },
+          },
+        }));
+      },
+
+      getLog: (nightDate) => {
+        const log = get().logs[nightDate];
+        if (!log) return null;
+        // Backward compat: old records may have 'date' but not 'nightDate'
+        return { ...log, nightDate: log.nightDate ?? log.date ?? nightDate };
+      },
+
+      // "Last night" = the night of yesterday (you went to sleep yesterday, woke up today)
+      getLastNightLog: () => {
+        const lastNight = dateStr(subDaysDate(1));
+        return get().logs[lastNight] ?? null;
+      },
+
+      // "Tonight" = the night of today (you'll go to sleep tonight, wake up tomorrow)
+      getTonightLog: () => {
+        const tonight = dateStr(new Date());
+        return get().logs[tonight] ?? null;
+      },
 
       getLogsForRange: (days) => {
         const logs = get().logs;
         return Array.from({ length: days }, (_, i) => {
-          const key = subDaysStr(days - 1 - i);
+          const key = dateStr(subDaysDate(days - 1 - i));
           return logs[key] ?? emptyLog(key);
         });
       },
@@ -68,8 +132,7 @@ export const useSleepStore = create<SleepStore>()(
       getWeekAvg: (weeksAgo = 0) => {
         const logs = get().logs;
         const days = Array.from({ length: 7 }, (_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - i - weeksAgo * 7);
+          const d = subDaysDate(i + weeksAgo * 7);
           return logs[dateStr(d)];
         }).filter((d) => d && d.hoursSlept > 0) as SleepLog[];
 
@@ -87,8 +150,7 @@ export const useSleepStore = create<SleepStore>()(
       getMonthAvg: () => {
         const logs = get().logs;
         const days = Array.from({ length: 30 }, (_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
+          const d = subDaysDate(i);
           return logs[dateStr(d)];
         }).filter((d) => d && d.hoursSlept > 0) as SleepLog[];
 
@@ -102,6 +164,45 @@ export const useSleepStore = create<SleepStore>()(
         };
       },
     }),
-    { name: 'habits-pioneer-sleep-v1', storage: createJSONStorage(() => AsyncStorage) }
+    {
+      name: 'habits-pioneer-sleep-v1',
+      storage: createJSONStorage(() => AsyncStorage),
+      // Migrate old logs on rehydrate: backfill nightDate and totalMinutes
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const migratedLogs: Record<string, ReturnType<typeof emptyLog>> = {};
+        let needsMigration = false;
+
+        for (const [key, log] of Object.entries(state.logs)) {
+          const hasNightDate = !!(log as any).nightDate;
+          const hasTotalMinutes = (log as any).totalMinutes > 0;
+          if (hasNightDate && hasTotalMinutes) {
+            migratedLogs[key] = log as any;
+            continue;
+          }
+          needsMigration = true;
+          const nightDate = (log as any).nightDate ?? (log as any).date ?? key;
+          const bedtime = (log as any).bedtime ?? '';
+          const wakeTime = (log as any).wakeTime ?? '';
+          const totalMinutes =
+            bedtime && wakeTime ? calcTotalMinutes(bedtime, wakeTime) : 0;
+          const hoursSlept =
+            (log as any).hoursSlept > 0
+              ? (log as any).hoursSlept
+              : Math.round((totalMinutes / 60) * 10) / 10;
+          migratedLogs[key] = {
+            ...(log as any),
+            nightDate,
+            date: nightDate,
+            totalMinutes,
+            hoursSlept,
+          };
+        }
+
+        if (needsMigration) {
+          state.logs = migratedLogs;
+        }
+      },
+    }
   )
 );

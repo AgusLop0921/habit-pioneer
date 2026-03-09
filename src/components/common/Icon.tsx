@@ -78,6 +78,7 @@ const ICON_MAP = {
   // Sleep feature
   'repeat-outline': { set: 'ion', name: 'repeat-outline' },
   'alert-circle-outline': { set: 'ion', name: 'alert-circle-outline' },
+  timer: { set: 'mci', name: 'timer-outline' },
 } as const;
 
 export type IconName = keyof typeof ICON_MAP;

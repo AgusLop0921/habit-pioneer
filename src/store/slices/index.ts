@@ -4,3 +4,4 @@ export { createGoalsSlice } from './goalsSlice';
 export { createShoppingSlice } from './shoppingSlice';
 export { createSettingsSlice } from './settingsSlice';
 export { createStatsSlice } from './statsSlice';
+export { createCategoriesSlice } from './categoriesSlice';

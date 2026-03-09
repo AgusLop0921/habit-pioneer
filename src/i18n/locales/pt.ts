@@ -6,6 +6,77 @@ export default {
     today: 'Hoje',
     habitsToday: 'Hábitos hoje',
     tasksToday: 'Tarefas hoje',
+    task: {
+      category: {
+        label: 'Categoria',
+        work: 'Trabalho',
+        personal: 'Pessoal',
+        sport: 'Esporte',
+        filter: {
+          all: 'Todas',
+          work: 'Trabalho',
+          personal: 'Pessoal',
+          sport: 'Esporte',
+        },
+      },
+      reminder: {
+        title: '⏰ É hora!',
+        prompt: 'É hora de: {{title}}',
+      },
+      midday: {
+        title: '👀 Check do Meio-dia',
+        prompt: 'Como você está indo com suas tarefas hoje?',
+        mixed: 'Você tem {{work}} tarefas de trabalho e {{personal}} pessoais. Pronto?',
+        work_only: 'Você tem {{count}} tarefas de trabalho pendentes 💼',
+        personal_only: 'Você tem {{count}} tarefas pessoais esperando 🏠',
+      },
+      form: {
+        reminder: 'Lembrete',
+        time: 'Hora',
+      },
+    },
+    pomodoro: {
+      work: {
+        complete: {
+          title: '🍅 Pomodoro concluído!',
+          body: 'Você fez {{duration}} minutos de trabalho focado. Hora de descansar! ☕️',
+        },
+      },
+      shortBreak: {
+        complete: {
+          title: '☕️ Pausa terminada',
+          body: 'De volta ao trabalho! Você consegue 💪',
+        },
+      },
+      longBreak: {
+        complete: {
+          title: '🌊 Pausa longa terminada',
+          body: 'Pronto para outra sessão de foco?',
+        },
+      },
+    },
+    notifications: {
+      sleep: {
+        warning: {
+          title: '🌙 Comece sua rotina noturna',
+          body: 'Para acordar descansado amanhã, você deve estar na cama às {{time}}',
+        },
+        time: {
+          title: '😴 É hora de dormir',
+          body: 'Seu corpo vai agradecer amanhã. Boa noite!',
+        },
+      },
+      settings: {
+        title: 'Notificações',
+        master: 'Ativar notificações',
+        pomodoro: 'Pomodoro',
+        sleep: 'Rotina de sono',
+        tasks: 'Lembretes de tarefas',
+        midday: 'Check do meio-dia',
+        wakeTime: 'Hora de acordar',
+        middayTime: 'Hora do check-in',
+      },
+    },
     general: 'Geral',
     dailyHabits: 'Diários',
     weeklyHabits: 'Semanais',
@@ -109,6 +180,10 @@ export default {
       streak: 'Sequência',
       longest: 'Maior',
       completed: 'Concluídos',
+      productivity: 'Produtividade',
+      sessionsToday: 'Sessões hoje',
+      minutesToday: 'Minutos foco',
+      totalFocus: 'Total histórico',
       days365: '365 dias',
       weekDaysShort: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
     },
@@ -165,6 +240,8 @@ export default {
         register: 'Registrar',
         today: 'Hoje',
         yesterday: 'Ontem',
+        lastNight: 'Ontem à noite',
+        tonight: 'Hoje à noite',
         noRecord: 'Sem registro',
         habitsCount: '{{count}}/16 hábitos',
         noWakeUps: 'Sem despertares',

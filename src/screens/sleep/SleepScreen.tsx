@@ -157,9 +157,28 @@ export default function SleepScreen() {
   // PANTALLA: MAIN HUB
   const s2 = makeMainStyles(theme);
 
-  // ── Sesión guiada (pantalla completa sin tabs) ──
-  // Renderizada como Modal fullScreen para ocultar la tab bar
+  // Night-of: compute dates
+  const todayDate = new Date();
+  const yesterdayDate = subDays(1);
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
 
+  // "Last night" = noche de ayer (te acostaste ayer, te despertaste hoy)
+  const lastNightKey = fmtDate(yesterdayDate);
+  // "Tonight" = noche de hoy (te acostás hoy, te despertás mañana)
+  const tonightKey = fmtDate(todayDate);
+
+  const lastNightLog = logs[lastNightKey];
+  const tonightLog = logs[tonightKey];
+
+  // Format "Vie 6 → Sáb 7" style labels
+  const fmtDayShort = (d: Date) =>
+    d.toLocaleDateString(i18n.language, { weekday: 'short', day: 'numeric' });
+
+  const lastNightRange = `${fmtDayShort(yesterdayDate)} → ${fmtDayShort(todayDate)}`;
+  const tonightRange = `${fmtDayShort(todayDate)} → ${fmtDayShort(tomorrowDate)}`;
+
+  // Sesión guiada (pantalla completa sin tabs)
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: theme.bg }]} edges={['top']}>
       <Modal
@@ -177,7 +196,7 @@ export default function SleepScreen() {
           <View>
             <Text style={[s2.title, { color: theme.text }]}>{t('sleep.hub.title')}</Text>
             <Text style={[s2.subtitle, { color: theme.textSecondary }]}>
-              {new Date().toLocaleDateString(i18n.language, {
+              {todayDate.toLocaleDateString(i18n.language, {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -185,7 +204,6 @@ export default function SleepScreen() {
             </Text>
           </View>
           <View style={s2.headerRight}>
-            {/* Botón debug — ver onboarding de nuevo */}
             <Pressable
               style={[s2.replayBtn, { borderColor: theme.borderDim }]}
               onPress={() => setScreen('onboarding')}
@@ -194,7 +212,7 @@ export default function SleepScreen() {
             </Pressable>
             <Pressable
               style={[s2.logBtn, { backgroundColor: INDIGO }]}
-              onPress={() => openLog(today)}
+              onPress={() => openLog(lastNightKey)}
             >
               <Icon name="plus" size={16} color="#fff" />
               <Text style={s2.logBtnText}>{t('sleep.hub.register')}</Text>
@@ -202,12 +220,22 @@ export default function SleepScreen() {
           </View>
         </View>
 
-        {/* Hoy + Ayer */}
+        {/* Night-of cards: Last Night + Tonight */}
         <View style={s2.dayRow}>
           {[
-            { label: t('sleep.hub.today'), log: todayLog, date: today },
-            { label: t('sleep.hub.yesterday'), log: yestLog, date: yesterday },
-          ].map(({ label, log, date }) => (
+            {
+              label: t('sleep.hub.lastNight'),
+              sublabel: lastNightRange,
+              log: lastNightLog,
+              date: lastNightKey,
+            },
+            {
+              label: t('sleep.hub.tonight'),
+              sublabel: tonightRange,
+              log: tonightLog,
+              date: tonightKey,
+            },
+          ].map(({ label, sublabel, log, date }) => (
             <Pressable
               key={label}
               style={[
@@ -225,15 +253,15 @@ export default function SleepScreen() {
                   <Icon name="plus" size={15} color={INDIGO} />
                 )}
               </View>
+              {/* Date range label */}
+              <Text style={[s2.nightRange, { color: theme.textMuted }]}>{sublabel}</Text>
               {log?.hoursSlept > 0 ? (
                 <>
-                  <Text style={[s2.hoursNum, { color: theme.text }]}>{log.hoursSlept}h</Text>
+                  <Text style={[s2.hoursNum, { color: theme.text }]}>
+                    {Math.floor(log.totalMinutes / 60)}h {log.totalMinutes % 60}m
+                  </Text>
                   <Text style={[s2.dayMeta, { color: theme.textSecondary }]}>
-                    {label === t('sleep.hub.today')
-                      ? t('sleep.hub.habitsCount', { count: log.checklistDone.length })
-                      : log.wakeUps === 0
-                        ? t('sleep.hub.noWakeUps')
-                        : t('sleep.hub.wakeUp_other', { count: log.wakeUps })}
+                    {log.bedtime} → {log.wakeTime}
                   </Text>
                 </>
               ) : (
@@ -398,7 +426,7 @@ export default function SleepScreen() {
             )}
           </View>
 
-          {/* Timeline 7 días */}
+          {/* Timeline 7 días — muestra la noche de cada día */}
           <View
             style={[
               s2.timelineCard,
@@ -409,24 +437,26 @@ export default function SleepScreen() {
             <View style={s2.timelineRow}>
               {last7.map((log, i) => {
                 const d = subDays(6 - i);
+                const nightDate = fmtDate(d);
+                const nextDay = new Date(d);
+                nextDay.setDate(nextDay.getDate() + 1);
                 const dayLetter = d
                   .toLocaleDateString(i18n.language, { weekday: 'narrow' })
                   .charAt(0)
                   .toUpperCase();
-                const isToday = log.date === today;
-                const compliance = log.checklistDone.length / 16;
+                const isTonight = nightDate === tonightKey;
                 const hasData = log.hoursSlept > 0;
                 return (
-                  <Pressable key={i} style={s2.tlDay} onPress={() => openLog(log.date)}>
+                  <Pressable key={i} style={s2.tlDay} onPress={() => openLog(nightDate)}>
                     <View
                       style={[
                         s2.tlDot,
                         {
                           backgroundColor: hasData
-                            ? `rgba(99,102,241,${0.15 + compliance * 0.85})`
+                            ? `rgba(99,102,241,${0.15 + (log.checklistDone.length / 16) * 0.85})`
                             : theme.surface2,
                         },
-                        isToday && { borderWidth: 2, borderColor: INDIGO },
+                        isTonight && { borderWidth: 2, borderColor: INDIGO },
                       ]}
                     >
                       {hasData ? (
@@ -438,8 +468,8 @@ export default function SleepScreen() {
                     <Text
                       style={[
                         s2.tlLabel,
-                        { color: isToday ? INDIGO : theme.textSecondary },
-                        isToday && { fontWeight: '700' },
+                        { color: isTonight ? INDIGO : theme.textSecondary },
+                        isTonight && { fontWeight: '700' },
                       ]}
                     >
                       {dayLetter}
@@ -458,6 +488,7 @@ export default function SleepScreen() {
     </SafeAreaView>
   );
 }
+
 
 // Estilos pantalla enroll
 const s = StyleSheet.create({
@@ -563,6 +594,7 @@ const makeMainStyles = (_theme: AppTheme) =>
     },
     dayLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
     stars: { color: '#fbbf24', fontSize: 12 },
+    nightRange: { fontSize: 11, marginBottom: 4 },
     hoursNum: { fontSize: 30, fontWeight: '800', letterSpacing: -1 },
     dayMeta: { fontSize: 12, marginTop: 2 },
     noReg: { fontSize: 13, marginTop: 8 },

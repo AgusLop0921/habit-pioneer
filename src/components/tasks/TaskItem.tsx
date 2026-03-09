@@ -59,16 +59,26 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, priorityLab
 
           <CheckCircle done={task.completed} onToggle={handleToggle} />
 
-          <Text
-            style={[
-              s.name,
-              { color: task.completed ? theme.textSecondary : theme.text },
-              task.completed && s.strike,
-            ]}
-            numberOfLines={1}
-          >
-            {task.title}
-          </Text>
+          <View style={s.content}>
+            <View style={s.titleRow}>
+              <Text style={s.categoryIcon}>{task.category === 'work' ? '💼' : '🏠'}</Text>
+              <Text
+                style={[
+                  s.name,
+                  { color: task.completed ? theme.textSecondary : theme.text },
+                  task.completed && s.strike,
+                ]}
+                numberOfLines={1}
+              >
+                {task.title}
+              </Text>
+            </View>
+            {task.reminderEnabled && task.scheduledTime && (
+              <Text style={[s.reminderTime, { color: theme.textMuted }]}>
+                ⏰ {task.scheduledTime}
+              </Text>
+            )}
+          </View>
 
           {/* Badge de prioridad con ícono */}
           <View style={[s.badge, { backgroundColor: `${meta.color}1a` }]}>
@@ -93,8 +103,12 @@ const s = StyleSheet.create({
   },
   done: { opacity: 0.5 },
   priorityBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
-  name: { flex: 1, fontSize: 15, fontWeight: '500', paddingLeft: 4 },
+  name: { flex: 1, fontSize: 15, fontWeight: '500' },
   strike: { textDecorationLine: 'line-through' },
+  content: { flex: 1, justifyContent: 'center' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  categoryIcon: { fontSize: 14 },
+  reminderTime: { fontSize: 11, fontWeight: '600', marginTop: 2 },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
