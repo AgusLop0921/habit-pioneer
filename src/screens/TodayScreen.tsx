@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, differenceInCalendarDays, parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { Switch } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
@@ -64,10 +64,12 @@ export default function TodayScreen() {
 
   const {
     tasks: todayTasks,
+    overdueTasks,
     addTask: addTaskForDate,
     editTask,
     removeTask,
     toggleTask,
+    rescheduleToDate,
   } = useTasks(selectedDate);
 
   const progress = useProgress(selectedDate);
@@ -100,6 +102,7 @@ export default function TodayScreen() {
   const [newCatEmoji, setNewCatEmoji] = useState('');
 
   // Expandable sections
+  const [isOverdueExpanded, setIsOverdueExpanded] = useState(true);
   const [isTasksExpanded, setIsTasksExpanded] = useState(true);
   const [isDailyHabitsExpanded, setIsDailyHabitsExpanded] = useState(true);
   const [isWeeklyHabitsExpanded, setIsWeeklyHabitsExpanded] = useState(true);
@@ -225,6 +228,62 @@ export default function TodayScreen() {
             </View>
           </View>
         </View>
+
+        {/* Overdue tasks section — only shown when viewing today */}
+        {isToday && overdueTasks.length > 0 && (
+          <View style={s.section}>
+            <Pressable
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setIsOverdueExpanded(!isOverdueExpanded);
+              }}
+            >
+              <View style={[s.overdueDot]} />
+              <Text style={[s.sectionTitle, { color: '#FF9F0A' }]}>
+                {t('task.overdue.sectionTitle')} ({overdueTasks.length})
+              </Text>
+              <Icon
+                name={isOverdueExpanded ? 'chevronDown' : 'chevronRight'}
+                size={16}
+                color="#FF9F0A"
+              />
+            </Pressable>
+            {isOverdueExpanded &&
+              overdueTasks.map((task) => {
+                const daysAgo = differenceInCalendarDays(new Date(), parseISO(task.date));
+                const ageLabel =
+                  daysAgo === 1
+                    ? t('task.overdue.yesterday')
+                    : t('task.overdue.daysAgo', { count: daysAgo });
+                return (
+                  <View key={task.id}>
+                    <View style={s.overdueRowHeader}>
+                      <Text style={s.overdueAgeLabel}>{ageLabel}</Text>
+                      <Pressable
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          rescheduleToDate(task.id);
+                        }}
+                      >
+                        <Text style={s.overdueMoveBtn}>{t('task.overdue.moveToToday')}</Text>
+                      </Pressable>
+                    </View>
+                    <TaskItem
+                      task={task}
+                      onToggle={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        toggleTask(task.id);
+                      }}
+                      onDelete={() => removeTask(task.id)}
+                      onEdit={() => setEditItem({ type: 'task', data: task })}
+                      priorityLabel={t(`priority.${task.priority}`)}
+                    />
+                  </View>
+                );
+              })}
+          </View>
+        )}
 
         {/* Tasks section */}
         {(todayTasks.length > 0 || true) && (
@@ -730,5 +789,31 @@ const makeStyles = (_theme: AppTheme) =>
       borderRadius: Radius.md,
       padding: Spacing.sm,
       fontSize: 15,
+    },
+    overdueDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: '#FF9F0A',
+    },
+    overdueRowHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+      marginBottom: 4,
+      marginTop: 2,
+    },
+    overdueAgeLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: '#FF9F0A',
+      textTransform: 'uppercase',
+      letterSpacing: 0.3,
+    },
+    overdueMoveBtn: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#FF9F0A',
     },
   });

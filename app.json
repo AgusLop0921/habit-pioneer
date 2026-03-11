@@ -8,34 +8,36 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0d0d0d",
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0d0d0d"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.yourname.habitspioneer"
+      "bundleIdentifier": "com.aglopez.habitspioneer"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a0a0a"
       },
-      "package": "com.yourname.habitspioneer"
+      "package": "com.aglopez.habitspioneer"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "scheme": "habits-pioneer",
     "plugins": [
       [
         "expo-splash-screen",
         {
-          "image": "./assets/icon.png",
+          "image": "./assets/splash-icon.png",
           "backgroundColor": "#0d0d0d",
           "imageWidth": 120
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-web-browser"
     ]
   }
 }

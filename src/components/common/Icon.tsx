@@ -46,6 +46,7 @@ const ICON_MAP = {
   trophy: { set: 'ion', name: 'trophy' },
   streak: { set: 'mci', name: 'lightning-bolt' },
   completed: { set: 'ion', name: 'checkmark-done-circle' },
+  trendingUp: { set: 'ion', name: 'trending-up' },
   flame: { set: 'ion', name: 'flame' },
   chart: { set: 'ion', name: 'bar-chart' },
   target: { set: 'ion', name: 'flag-outline' },

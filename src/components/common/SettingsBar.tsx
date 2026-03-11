@@ -6,6 +6,7 @@ import { useTheme } from '@/context/ThemeContext';
 import Icon from './Icon';
 import { Spacing, Radius } from '@/theme';
 import { Language } from '@/types';
+import CloudSyncButton from '@/components/sync/CloudSyncButton';
 
 const LANGUAGES: { code: Language; label: string; flag: string }[] = [
   { code: 'es', label: 'Español', flag: '🇦🇷' },
@@ -37,6 +38,9 @@ export default function SettingsBar() {
         </View>
 
         <View style={s.actions}>
+          {/* Cloud sync */}
+          <CloudSyncButton />
+
           {/* Theme toggle */}
           <Pressable
             style={[s.iconBtn, { backgroundColor: theme.surface, borderColor: theme.borderDim }]}

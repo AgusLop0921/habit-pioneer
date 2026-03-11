@@ -15,6 +15,10 @@ export default function PomodoroStatsCard() {
     const todaySessions = getTodaySessions();
     const workSessions = todaySessions.filter(s => s.mode === 'work').length;
     const focusMinutesToday = Math.round(todaySessions.filter(s => s.mode === 'work').reduce((acc, s) => acc + s.durationSeconds, 0) / 60);
+    const totalFocusMinutes = getTotalFocusMinutes();
+
+    // Solo mostrar si hay datos reales de Pomodoro
+    if (totalFocusMinutes === 0 && workSessions === 0) return null;
 
     return (
         <View style={[s.card, { backgroundColor: theme.surface2, borderColor: theme.borderDim }]}>
@@ -37,7 +41,7 @@ export default function PomodoroStatsCard() {
                 </View>
                 <View style={s.divider} />
                 <View style={s.stat}>
-                    <Text style={[s.val, { color: theme.text }]}>{getTotalFocusMinutes()}</Text>
+                    <Text style={[s.val, { color: theme.text }]}>{totalFocusMinutes}</Text>
                     <Text style={[s.label, { color: theme.textSecondary }]}>{t('history.totalFocus') || 'Total histórico'}</Text>
                 </View>
             </View>
