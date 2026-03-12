@@ -1,6 +1,5 @@
 export { useHabits } from './useHabits';
 export { useTasks } from './useTasks';
-export { useGoals } from './useGoals';
 export { useShopping } from './useShopping';
 export { useProgress } from './useProgress';
 export { useHistory } from './useHistory';

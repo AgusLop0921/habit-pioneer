@@ -73,13 +73,6 @@ jest.mock('@/hooks', () => ({
     toggleTask: jest.fn(),
   }),
   useProgress: () => ({ habits: 0, tasks: 0, total: 0 }),
-  useGoals: () => ({
-    weeklyGoals: [],
-    addWeeklyGoal: jest.fn(),
-    editWeeklyGoal: jest.fn(),
-    removeWeeklyGoal: jest.fn(),
-    logGoalCompletion: jest.fn(),
-  }),
   useShopping: () => ({
     shoppingList: [],
     grouped: {},
@@ -117,7 +110,6 @@ import { render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
 import TodayScreen from '@/screens/TodayScreen';
-import GoalsScreen from '@/screens/GoalsScreen';
 import ShoppingScreen from '@/screens/ShoppingScreen';
 import HistoryScreen from '@/screens/HistoryScreen';
 
@@ -134,10 +126,6 @@ describe('Screen smoke tests', () => {
     expect(() => render(<TodayScreen />, { wrapper: Wrapper })).not.toThrow();
   });
 
-  it('GoalsScreen renders without crashing', () => {
-    expect(() => render(<GoalsScreen />, { wrapper: Wrapper })).not.toThrow();
-  });
-
   it('ShoppingScreen renders without crashing', () => {
     expect(() => render(<ShoppingScreen />, { wrapper: Wrapper })).not.toThrow();
   });
@@ -151,8 +139,4 @@ describe('Screen smoke tests', () => {
     expect(getByText('today')).toBeTruthy();
   });
 
-  it('GoalsScreen shows section title', () => {
-    const { getByText } = render(<GoalsScreen />, { wrapper: Wrapper });
-    expect(getByText('goalsSection')).toBeTruthy();
-  });
 });

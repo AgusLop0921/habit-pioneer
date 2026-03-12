@@ -36,15 +36,6 @@ export interface Task {
   userId?: string;
 }
 
-export interface WeeklyGoal {
-  id: string;
-  title: string;
-  targetCount: number;
-  weekStart: string;
-  completions: string[];
-  userId?: string;
-}
-
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -59,7 +50,6 @@ export type DayHistory = Record<string, boolean>;
 export type RootTabParamList = {
   Today: undefined;
   History: undefined;
-  Goals: undefined;
   Shopping: undefined;
 };
 

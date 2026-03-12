@@ -14,8 +14,9 @@ import SyncStatusBadge from './src/components/sync/SyncStatusBadge';
 import { useStore } from './src/store';
 import { useAuthStore } from './src/store/authStore';
 import { bootstrapSync } from './src/lib/syncBootstrap';
-import { getLocalDataSummary } from './src/lib/syncManager';
+import { getLocalDataSummary, downloadAll } from './src/lib/syncManager';
 import { FloatingPomodoroButton, PomodoroModal } from './src/components/pomodoro';
+import { usePomodoroStore } from './src/store/pomodoroStore';
 
 type Phase =
   | 'splash'
@@ -39,17 +40,38 @@ function useLanguageSync() {
   }, [language]);
 }
 
+function hasLocalData(): boolean {
+  const s = getLocalDataSummary();
+  return s.habits > 0 || s.tasks > 0 || s.shoppingItems > 0;
+}
+
+function usePomodoroTick() {
+  const tick = usePomodoroStore((s) => s.tick);
+  useEffect(() => {
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [tick]);
+}
+
 function AppContent() {
   useLanguageSync();
+  usePomodoroTick();
   const [phase, setPhase] = useState<Phase>('splash');
   const { isDark } = useTheme();
 
-  const { onboardingComplete, mode, isAuthenticated, restoreSession } = useAuthStore();
+  const { onboardingComplete, mode, isAuthenticated, restoreSession, completeOnboarding } = useAuthStore();
 
   // On app start: restore Supabase session + wire up sync listeners
+  // If already logged in on a device with no local data (e.g. fresh install),
+  // auto-download from cloud so the user sees their data immediately.
   useEffect(() => {
     bootstrapSync();
-    void restoreSession();
+    void restoreSession().then(() => {
+      const { mode, isAuthenticated } = useAuthStore.getState();
+      if (mode === 'cloud' && isAuthenticated && !hasLocalData()) {
+        void downloadAll();
+      }
+    });
   }, []);
 
   const handleSplashFinish = () => {
@@ -61,19 +83,17 @@ function AppContent() {
   };
 
   const handleOnboardingDone = () => {
+    // Mark onboarding as complete regardless of path (local or Google)
+    completeOnboarding();
+
     // If user just signed in (cloud mode) and already has local data → migration prompt
     if (mode === 'cloud' || isAuthenticated) {
-      const summary = getLocalDataSummary();
-      const hasData =
-        summary.habits > 0 ||
-        summary.tasks > 0 ||
-        summary.goals > 0 ||
-        summary.shoppingItems > 0;
-
-      if (hasData) {
+      if (hasLocalData()) {
         setPhase('migration');
         return;
       }
+      // No local data but signed in → silently pull from cloud (second device / reinstall)
+      void downloadAll();
     }
     setPhase('motivational');
   };

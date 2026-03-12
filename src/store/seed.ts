@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import type { StoreState } from '@/store';
 
 export function seedStore(
-  store: Pick<StoreState, 'addHabit' | 'addTask' | 'addWeeklyGoal' | 'addShoppingItem'>
+  store: Pick<StoreState, 'addHabit' | 'addTask' | 'addShoppingItem'>
 ) {
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -28,9 +28,6 @@ export function seedStore(
 
   store.addTask({ title: 'Hacer la cama', priority: 'medium', date: today });
   store.addTask({ title: 'Revisar emails', priority: 'high', date: today });
-
-  store.addWeeklyGoal({ title: 'Ir al gimnasio', targetCount: 3 });
-  store.addWeeklyGoal({ title: 'Meditar', targetCount: 5 });
 
   store.addShoppingItem({ name: 'Leche', quantity: 2, category: 'food' });
   store.addShoppingItem({ name: 'Detergente', quantity: 1, category: 'cleaning' });

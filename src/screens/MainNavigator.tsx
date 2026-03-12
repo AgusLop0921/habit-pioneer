@@ -8,7 +8,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import TodayScreen from './TodayScreen';
-import GoalsScreen from './GoalsScreen';
+import TasksScreen from './TasksScreen';
 import ShoppingScreen from './ShoppingScreen';
 import HistoryScreen from './HistoryScreen';
 import SleepScreen from './sleep/SleepScreen';
@@ -19,9 +19,9 @@ const INDIGO = '#6366f1';
 
 const TABS = [
   { name: 'Today', icon: 'home-outline', active: 'home', labelKey: 'tabs.home' },
+  { name: 'Tasks', icon: 'checkmark-circle-outline', active: 'checkmark-circle', labelKey: 'tabs.tasks' },
   { name: 'Sleep', icon: 'moon-outline', active: 'moon', labelKey: 'tabs.sleep' },
   { name: 'History', icon: 'bar-chart-outline', active: 'bar-chart', labelKey: 'tabs.stats' },
-  { name: 'Goals', icon: 'trophy-outline', active: 'trophy', labelKey: 'tabs.goals' },
   { name: 'Shopping', icon: 'cart-outline', active: 'cart', labelKey: 'tabs.shopping' },
 ];
 
@@ -68,9 +68,9 @@ export default function MainNavigator() {
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator tabBar={(p) => <PillTabBar {...p} />} screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Today" component={TodayScreen} />
+        <Tab.Screen name="Tasks" component={TasksScreen} />
         <Tab.Screen name="Sleep" component={SleepScreen} />
         <Tab.Screen name="History" component={HistoryScreen} />
-        <Tab.Screen name="Goals" component={GoalsScreen} />
         <Tab.Screen name="Shopping" component={ShoppingScreen} />
       </Tab.Navigator>
     </NavigationContainer>

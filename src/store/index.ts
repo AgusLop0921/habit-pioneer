@@ -5,7 +5,6 @@ import type { Store } from './types';
 import {
   createHabitsSlice,
   createTasksSlice,
-  createGoalsSlice,
   createShoppingSlice,
   createSettingsSlice,
   createStatsSlice,
@@ -17,7 +16,6 @@ export const useStore = create<Store>()(
     (...a) => ({
       ...createHabitsSlice(...a),
       ...createTasksSlice(...a),
-      ...createGoalsSlice(...a),
       ...createShoppingSlice(...a),
       ...createSettingsSlice(...a),
       ...createStatsSlice(...a),

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useHistory, useDateLocale } from '@/hooks';
-import { useGoals } from '@/hooks/useGoals';
 import { useTheme } from '@/context/ThemeContext';
 import Icon from '@/components/common/Icon';
 import InfoTooltip from '@/components/common/InfoTooltip';
@@ -13,7 +12,6 @@ export default function ResumenTab() {
     const { theme } = useTheme();
     const { t } = useTranslation();
     const { habits, history, totalCompleted, currentStreak, longestStreak } = useHistory();
-    const { weeklyGoals } = useGoals();
     const locale = useDateLocale();
 
     // ── Data Computations ──
@@ -39,11 +37,6 @@ export default function ResumenTab() {
         const h = history[dateStr] ?? {};
         return Object.values(h).some(Boolean);
     }).length;
-
-    // Weekly goals logic
-    const totalGoalTarget = weeklyGoals.reduce((acc, g) => acc + g.targetCount, 0);
-    const currentGoalCompletions = weeklyGoals.reduce((acc, g) => acc + g.completions.length, 0);
-    const weeklyGoalPercent = totalGoalTarget > 0 ? Math.min(100, Math.round((currentGoalCompletions / totalGoalTarget) * 100)) : 0;
 
     // Week progress logic
     const weekHabitsDone = last7Days.reduce((acc, d) => {
@@ -198,28 +191,14 @@ export default function ResumenTab() {
                 </Text>
             </View>
 
-            {/* ── Active Days & Weekly Goal Row ── */}
-            <View style={s.row}>
-                <View style={[s.card, s.halfCard, { backgroundColor: theme.surface }]}>
-                    <View style={s.iconWrapBlue}>
-                        <Icon name="target" size={20} color="#3B82F6" />
-                    </View>
-                    <Text style={[s.valLg, { color: theme.text, marginTop: Spacing.lg, marginBottom: Spacing.md }]}>{totalActiveDays}</Text>
-                    <Text style={[s.label, { color: theme.textSecondary, marginBottom: Spacing.md }]}>{t('history.activeDays')}</Text>
-                    <Text style={[s.label, { color: '#22C55E' }]}>{t('history.thisWeek', { count: activeThisWeek })}</Text>
+            {/* ── Active Days ── */}
+            <View style={[s.card, { backgroundColor: theme.surface }]}>
+                <View style={s.iconWrapBlue}>
+                    <Icon name="target" size={20} color="#3B82F6" />
                 </View>
-
-                <View style={[s.card, s.halfCard, { backgroundColor: theme.surface }]}>
-                    <View style={s.iconWrapGold}>
-                        <Icon name="trophy" size={20} color="#EAB308" />
-                    </View>
-                    <Text style={[s.valLg, { color: theme.text, marginTop: Spacing.lg, marginBottom: Spacing.md }]}>{weeklyGoalPercent}%</Text>
-                    <Text style={[s.label, { color: theme.textSecondary, marginBottom: Spacing.md }]}>{t('history.weeklyGoal')}</Text>
-
-                    <Text style={[s.label, { color: weeklyGoalPercent >= 100 ? '#22C55E' : '#EAB308' }]}>
-                        {weeklyGoalPercent >= 100 ? t('history.goalReached') : weeklyGoalPercent > 0 ? t('history.almostThere') : t('history.keepGoing')}
-                    </Text>
-                </View>
+                <Text style={[s.valLg, { color: theme.text, marginTop: Spacing.lg, marginBottom: Spacing.md }]}>{totalActiveDays}</Text>
+                <Text style={[s.label, { color: theme.textSecondary, marginBottom: Spacing.md }]}>{t('history.activeDays')}</Text>
+                <Text style={[s.label, { color: '#22C55E' }]}>{t('history.thisWeek', { count: activeThisWeek })}</Text>
             </View>
 
             {/* ── Week Progress ── */}
@@ -448,22 +427,11 @@ const makeStyles = (theme: AppTheme) =>
             flexDirection: 'row',
             gap: Spacing.md,
         },
-        halfCard: {
-            flex: 1,
-        },
         iconWrapBlue: {
             width: 40,
             height: 40,
             borderRadius: 12,
             backgroundColor: 'rgba(59, 130, 246, 0.15)',
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-        iconWrapGold: {
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            backgroundColor: 'rgba(234, 179, 8, 0.15)',
             alignItems: 'center',
             justifyContent: 'center',
         },

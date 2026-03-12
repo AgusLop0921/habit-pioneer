@@ -36,7 +36,6 @@ export async function saveBackup(): Promise<void> {
       habits: main.habits,
       history: main.history,
       tasks: main.tasks,
-      weeklyGoals: main.weeklyGoals,
       shoppingList: main.shoppingList,
       customCategories: main.customCategories,
       language: main.language,
@@ -68,7 +67,6 @@ export async function getBackupInfo(): Promise<{ savedAt: string; summary: Recor
       summary: {
         habits: snapshot.main?.habits?.length ?? 0,
         tasks: snapshot.main?.tasks?.length ?? 0,
-        goals: snapshot.main?.weeklyGoals?.length ?? 0,
         shoppingItems: snapshot.main?.shoppingList?.length ?? 0,
         sleepLogs: Object.keys(snapshot.sleep?.logs ?? {}).length,
         pomodoroSessions: snapshot.pomodoro?.sessions?.length ?? 0,

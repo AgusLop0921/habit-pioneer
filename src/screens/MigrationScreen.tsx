@@ -63,7 +63,6 @@ export default function MigrationScreen({ onDone, onSkip }: Props) {
   const hasData =
     summary.habits > 0 ||
     summary.tasks > 0 ||
-    summary.goals > 0 ||
     summary.shoppingItems > 0 ||
     summary.sleepLogs > 0 ||
     summary.pomodoroSessions > 0;
@@ -104,9 +103,6 @@ export default function MigrationScreen({ onDone, onSkip }: Props) {
             )}
             {summary.tasks > 0 && (
               <SummaryRow icon="checkmark-done" label={t('auth.migration.tasks', { count: summary.tasks })} theme={theme} />
-            )}
-            {summary.goals > 0 && (
-              <SummaryRow icon="trophy" label={t('auth.migration.goals', { count: summary.goals })} theme={theme} />
             )}
             {summary.shoppingItems > 0 && (
               <SummaryRow icon="cart" label={t('auth.migration.shopping', { count: summary.shoppingItems })} theme={theme} />

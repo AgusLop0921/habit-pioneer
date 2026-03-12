@@ -7,29 +7,26 @@ import {
   Pressable,
   ActivityIndicator,
   AppState,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { format, isSameDay, differenceInCalendarDays, parseISO } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
-import { Switch } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { useHabits, useTasks, useProgress, useDateLocale, useHydration } from '@/hooks';
+import { useHabits, useProgress, useDateLocale, useHydration } from '@/hooks';
 import HabitCard from '@/components/habits/HabitCard';
-import TaskItem from '@/components/tasks/TaskItem';
 import OrangeButton from '@/components/common/OrangeButton';
 import BottomModal from '@/components/common/BottomModal';
 import EditModal from '@/components/common/EditModal';
 import SettingsBar from '@/components/common/SettingsBar';
 import FormInput from '@/components/common/FormInput';
+import EmojiPicker from '@/components/common/EmojiPicker';
 import Icon from '@/components/common/Icon';
 import ProgressRing from '@/components/common/ProgressRing';
 import WeekStrip from '@/components/common/WeekStrip';
 import { Spacing, Radius, type AppTheme } from '@/theme';
-import type { Task, Habit } from '@/types';
-import { Priority, Frequency } from '@/types';
-import { useStore } from '@/store';
+import type { Habit } from '@/types';
+import { Frequency } from '@/types';
 
 export default function TodayScreen() {
   const { t } = useTranslation();
@@ -49,7 +46,6 @@ export default function TodayScreen() {
     return () => sub.remove();
   }, []);
 
-  // ── Domain hooks ────────────────────────────────────────────────────────────
   const {
     dailyHabits,
     weeklyHabits,
@@ -62,82 +58,33 @@ export default function TodayScreen() {
     toggleHabit,
   } = useHabits(selectedDate);
 
-  const {
-    tasks: todayTasks,
-    overdueTasks,
-    addTask: addTaskForDate,
-    editTask,
-    removeTask,
-    toggleTask,
-    rescheduleToDate,
-  } = useTasks(selectedDate);
-
   const progress = useProgress(selectedDate);
   const locale = useDateLocale();
   const hydrated = useHydration();
 
-  // ── UI-only state ────────────────────────────────────────────────────────────
-  const [modalTask, setModalTask] = useState(false);
   const [modalHabit, setModalHabit] = useState(false);
-  const [editItem, setEditItem] = useState<
-    { type: 'task'; data: Task } | { type: 'habit'; data: Habit } | null
-  >(null);
+  const [editItem, setEditItem] = useState<{ type: 'habit'; data: Habit } | null>(null);
 
-  const [taskTitle, setTaskTitle] = useState('');
-  const [taskPriority, setTaskPriority] = useState<Priority>('medium');
   const [habitName, setHabitName] = useState('');
   const [habitDesc, setHabitDesc] = useState('');
   const [habitEmoji, setHabitEmoji] = useState('');
   const [habitFreq, setHabitFreq] = useState<Frequency>('daily');
 
-  // Task category filter
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-
-  // Modal specific state
-  const [taskCategory, setTaskCategory] = useState<string>('personal');
-
-  // Custom category creation
-  const [modalNewCategory, setModalNewCategory] = useState(false);
-  const [newCatName, setNewCatName] = useState('');
-  const [newCatEmoji, setNewCatEmoji] = useState('');
-
-  // Expandable sections
-  const [isOverdueExpanded, setIsOverdueExpanded] = useState(true);
-  const [isTasksExpanded, setIsTasksExpanded] = useState(true);
   const [isDailyHabitsExpanded, setIsDailyHabitsExpanded] = useState(true);
   const [isWeeklyHabitsExpanded, setIsWeeklyHabitsExpanded] = useState(true);
   const [isMonthlyHabitsExpanded, setIsMonthlyHabitsExpanded] = useState(true);
-
-  // Store
-  const getAllCategories = useStore((s) => s.getAllCategories);
-  const addTaskCategory = useStore((s) => s.addTaskCategory);
-  const allCategories = getAllCategories();
 
   const isToday = isSameDay(selectedDate, new Date());
 
   if (!hydrated) {
     return (
       <SafeAreaView
-        style={[
-          { flex: 1, alignItems: 'center', justifyContent: 'center' },
-          { backgroundColor: theme.bg },
-        ]}
+        style={[{ flex: 1, alignItems: 'center', justifyContent: 'center' }, { backgroundColor: theme.bg }]}
       >
         <ActivityIndicator size="large" color={theme.accent} />
       </SafeAreaView>
     );
   }
-
-  const handleAddTask = () => {
-    if (!taskTitle.trim()) return;
-    addTaskForDate(taskTitle.trim(), taskPriority, {
-      category: taskCategory,
-    } as any);
-    setTaskTitle('');
-    setTaskPriority('medium');
-    setTaskCategory('personal');
-    setModalTask(false);
-  };
 
   const handleAddHabit = () => {
     if (!habitName.trim()) return;
@@ -154,29 +101,7 @@ export default function TodayScreen() {
     setModalHabit(false);
   };
 
-  const priorities: Priority[] = ['high', 'medium', 'low'];
   const frequencies: Frequency[] = ['daily', 'weekly', 'monthly'];
-
-  const handleCreateCategory = () => {
-    if (!newCatName.trim()) return;
-    const id = newCatName.trim().toLowerCase().replace(/\s+/g, '_');
-    addTaskCategory({ id, label: newCatName.trim(), emoji: newCatEmoji.trim() || '📌' });
-    setNewCatName('');
-    setNewCatEmoji('');
-    setModalNewCategory(false);
-  };
-
-  const filteredTasks = todayTasks.filter(
-    (t) => categoryFilter === 'all' || t.category === categoryFilter
-  ).sort((a, b) => {
-    // Tareas completadas van al final
-    if (a.completed && !b.completed) return 1;
-    if (!a.completed && b.completed) return -1;
-
-    // Orden de prioridad (alto primero)
-    const priorityOrder = { high: 0, medium: 1, low: 2 };
-    return priorityOrder[a.priority] - priorityOrder[b.priority];
-  });
 
   const s = makeStyles(theme);
 
@@ -184,7 +109,6 @@ export default function TodayScreen() {
     <SafeAreaView style={[s.safe, { backgroundColor: theme.bg }]} edges={['top']}>
       <SettingsBar />
 
-      {/* Week strip */}
       <WeekStrip
         selectedDate={selectedDate}
         onSelectDate={setSelectedDate}
@@ -197,186 +121,23 @@ export default function TodayScreen() {
           <Text style={[s.title, { color: theme.text }]}>
             {isToday ? t('today') : format(selectedDate, 'EEE, d MMM', { locale })}
           </Text>
-          <View style={s.headerBtns}>
-            <Pressable
-              style={[s.circleBtn, { backgroundColor: theme.surface }]}
-              onPress={() => setModalHabit(true)}
-            >
-              <Text style={[s.circleBtnText, { color: theme.text }]}>+</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            style={[s.circleBtn, { backgroundColor: theme.surface }]}
+            onPress={() => setModalHabit(true)}
+          >
+            <Text style={[s.circleBtnText, { color: theme.text }]}>+</Text>
+          </Pressable>
         </View>
 
-        {/* Progress rings */}
+        {/* Progress ring */}
         <View style={s.ringSection}>
-          <View style={s.ringsRow}>
-            <View style={s.ringWrapper}>
-              <ProgressRing
-                progress={progress.habits}
-                size={148}
-                strokeWidth={11}
-                label={t('habitsToday')}
-              />
-            </View>
-            <View style={s.ringWrapper}>
-              <ProgressRing
-                progress={progress.tasks}
-                size={148}
-                strokeWidth={11}
-                label={t('tasksToday')}
-              />
-            </View>
-          </View>
+          <ProgressRing
+            progress={progress.habits}
+            size={160}
+            strokeWidth={12}
+            label={t('habitsToday')}
+          />
         </View>
-
-        {/* Overdue tasks section — only shown when viewing today */}
-        {isToday && overdueTasks.length > 0 && (
-          <View style={s.section}>
-            <Pressable
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setIsOverdueExpanded(!isOverdueExpanded);
-              }}
-            >
-              <View style={[s.overdueDot]} />
-              <Text style={[s.sectionTitle, { color: '#FF9F0A' }]}>
-                {t('task.overdue.sectionTitle')} ({overdueTasks.length})
-              </Text>
-              <Icon
-                name={isOverdueExpanded ? 'chevronDown' : 'chevronRight'}
-                size={16}
-                color="#FF9F0A"
-              />
-            </Pressable>
-            {isOverdueExpanded &&
-              overdueTasks.map((task) => {
-                const daysAgo = differenceInCalendarDays(new Date(), parseISO(task.date));
-                const ageLabel =
-                  daysAgo === 1
-                    ? t('task.overdue.yesterday')
-                    : t('task.overdue.daysAgo', { count: daysAgo });
-                return (
-                  <View key={task.id}>
-                    <View style={s.overdueRowHeader}>
-                      <Text style={s.overdueAgeLabel}>{ageLabel}</Text>
-                      <Pressable
-                        onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          rescheduleToDate(task.id);
-                        }}
-                      >
-                        <Text style={s.overdueMoveBtn}>{t('task.overdue.moveToToday')}</Text>
-                      </Pressable>
-                    </View>
-                    <TaskItem
-                      task={task}
-                      onToggle={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        toggleTask(task.id);
-                      }}
-                      onDelete={() => removeTask(task.id)}
-                      onEdit={() => setEditItem({ type: 'task', data: task })}
-                      priorityLabel={t(`priority.${task.priority}`)}
-                    />
-                  </View>
-                );
-              })}
-          </View>
-        )}
-
-        {/* Tasks section */}
-        {(todayTasks.length > 0 || true) && (
-          <View style={s.section}>
-            <View style={s.sectionHeader}>
-              <Pressable
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setIsTasksExpanded(!isTasksExpanded);
-                }}
-              >
-                <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
-                  {t('tasksSection')}
-                </Text>
-                <Icon
-                  name={isTasksExpanded ? 'chevronDown' : 'chevronRight'}
-                  size={16}
-                  color={theme.textSecondary}
-                />
-              </Pressable>
-              <Pressable onPress={() => setModalTask(true)}>
-                <Text style={[s.sectionAction, { color: theme.accent }]}>{t('newTask')}</Text>
-              </Pressable>
-            </View>
-
-            {isTasksExpanded && (
-              <>
-                {/* Category Filter Chips - scrollable */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
-                  <View style={[s.filterRow, { marginBottom: 0 }]}>
-                    {/* All chip */}
-                    <Pressable
-                      style={[
-                        s.filterChip,
-                        { backgroundColor: theme.surface2 },
-                        categoryFilter === 'all' && { backgroundColor: theme.accent, borderColor: theme.accent }
-                      ]}
-                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter('all'); }}
-                    >
-                      <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === 'all' && { color: '#fff' }]}>
-                        {t('task.category.filter.all')}
-                      </Text>
-                    </Pressable>
-
-                    {/* Dynamic category chips */}
-                    {allCategories.map((cat) => (
-                      <Pressable
-                        key={cat.id}
-                        style={[
-                          s.filterChip,
-                          { backgroundColor: theme.surface2 },
-                          categoryFilter === cat.id && { backgroundColor: theme.accent, borderColor: theme.accent }
-                        ]}
-                        onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setCategoryFilter(cat.id); }}
-                      >
-                        <Text style={[s.filterText, { color: theme.textSecondary }, categoryFilter === cat.id && { color: '#fff' }]}>
-                          {cat.emoji} {cat.label}
-                        </Text>
-                      </Pressable>
-                    ))}
-
-                    {/* Add custom category button */}
-                    <Pressable
-                      style={[s.filterChip, { backgroundColor: theme.surface2, borderStyle: 'dashed', borderWidth: 1, borderColor: theme.accent }]}
-                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setModalNewCategory(true); }}
-                    >
-                      <Text style={[s.filterText, { color: theme.accent }]}>+ Nueva</Text>
-                    </Pressable>
-                  </View>
-                </ScrollView>
-
-                {filteredTasks.length === 0 ? (
-                  <Text style={[s.emptyInline, { color: theme.textMuted }]}>{t('emptyTasks')}</Text>
-                ) : (
-                  filteredTasks.map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      onToggle={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        toggleTask(task.id);
-                      }}
-                      onDelete={() => removeTask(task.id)}
-                      onEdit={() => setEditItem({ type: 'task', data: task })}
-                      priorityLabel={t(`priority.${task.priority}`)}
-                    />
-                  ))
-                )}
-              </>
-            )}
-          </View>
-        )}
 
         {/* Daily habits */}
         <View style={s.section}>
@@ -404,9 +165,7 @@ export default function TodayScreen() {
               <View style={[s.emptyCard, { backgroundColor: theme.surface }]}>
                 <Text style={s.emptyBig}>✨</Text>
                 <Text style={[s.emptyTitle, { color: theme.text }]}>{t('habitsEmpty.title')}</Text>
-                <Text style={[s.emptyDesc, { color: theme.textSecondary }]}>
-                  {t('habitsEmpty.desc')}
-                </Text>
+                <Text style={[s.emptyDesc, { color: theme.textSecondary }]}>{t('habitsEmpty.desc')}</Text>
                 <Pressable
                   style={[s.emptyBtn, { backgroundColor: theme.accent }]}
                   onPress={() => setModalHabit(true)}
@@ -442,16 +201,14 @@ export default function TodayScreen() {
                 setIsWeeklyHabitsExpanded(!isWeeklyHabitsExpanded);
               }}
             >
-              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
-                {t('weeklyHabits')}
-              </Text>
+              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>{t('weeklyHabits')}</Text>
               <Icon
                 name={isWeeklyHabitsExpanded ? 'chevronDown' : 'chevronRight'}
                 size={16}
                 color={theme.textSecondary}
               />
             </Pressable>
-            {isWeeklyHabitsExpanded && (
+            {isWeeklyHabitsExpanded &&
               weeklyHabits.map((h) => (
                 <HabitCard
                   key={h.id}
@@ -464,8 +221,7 @@ export default function TodayScreen() {
                   onDelete={() => removeHabit(h.id)}
                   onEdit={() => setEditItem({ type: 'habit', data: h })}
                 />
-              ))
-            )}
+              ))}
           </View>
         )}
 
@@ -479,16 +235,14 @@ export default function TodayScreen() {
                 setIsMonthlyHabitsExpanded(!isMonthlyHabitsExpanded);
               }}
             >
-              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>
-                {t('monthlyHabits')}
-              </Text>
+              <Text style={[s.sectionTitle, { color: theme.textSecondary }]}>{t('monthlyHabits')}</Text>
               <Icon
                 name={isMonthlyHabitsExpanded ? 'chevronDown' : 'chevronRight'}
                 size={16}
                 color={theme.textSecondary}
               />
             </Pressable>
-            {isMonthlyHabitsExpanded && (
+            {isMonthlyHabitsExpanded &&
               monthlyHabits.map((h) => (
                 <HabitCard
                   key={h.id}
@@ -501,93 +255,12 @@ export default function TodayScreen() {
                   onDelete={() => removeHabit(h.id)}
                   onEdit={() => setEditItem({ type: 'habit', data: h })}
                 />
-              ))
-            )}
+              ))}
           </View>
         )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* Modal: nueva tarea */}
-      <BottomModal visible={modalTask} onClose={() => setModalTask(false)}>
-        <Text style={[s.modalTitle, { color: theme.text }]}>{t('modals.newTask')}</Text>
-        <FormInput
-          label={t('forms.whatToDo')}
-          placeholder={t('forms.taskPlaceholder')}
-          value={taskTitle}
-          onChangeText={setTaskTitle}
-          autoFocus
-        />
-        <Text style={[s.formLabel, { color: theme.textSecondary }]}>{t('priority.label')}</Text>
-        <View style={s.segRow}>
-          {priorities.map((p) => (
-            <Pressable
-              key={p}
-              style={[
-                s.seg,
-                { backgroundColor: theme.surface2, borderColor: theme.border },
-                taskPriority === p && {
-                  backgroundColor: theme.accentDim,
-                  borderColor: theme.accent,
-                },
-              ]}
-              onPress={() => setTaskPriority(p)}
-            >
-              <Text
-                style={[
-                  s.segText,
-                  { color: theme.textSecondary },
-                  taskPriority === p && { color: theme.accent },
-                ]}
-              >
-                {t(`priority.${p}`)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <Text style={[s.formLabel, { color: theme.textSecondary, marginTop: Spacing.sm }]}>
-          {t('task.category.label')}
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={[s.segRow, { marginBottom: Spacing.md }]}>
-            {allCategories.map((c) => (
-              <Pressable
-                key={c.id}
-                style={[
-                  s.seg,
-                  { backgroundColor: theme.surface2, borderColor: theme.border },
-                  taskCategory === c.id && {
-                    backgroundColor: theme.accentDim,
-                    borderColor: theme.accent,
-                  },
-                ]}
-                onPress={() => setTaskCategory(c.id)}
-              >
-                <Text
-                  style={[
-                    s.segText,
-                    { color: theme.textSecondary },
-                    taskCategory === c.id && { color: theme.accent },
-                  ]}
-                >
-                  {c.emoji} {c.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </ScrollView>
-        <View style={s.modalActions}>
-          <OrangeButton
-            label={t('actions.cancel')}
-            onPress={() => setModalTask(false)}
-            variant="ghost"
-            style={{ flex: 1 }}
-          />
-          <OrangeButton label={t('actions.save')} onPress={handleAddTask} style={{ flex: 2 }} />
-        </View>
-      </BottomModal>
 
       {/* Modal: nuevo hábito */}
       <BottomModal visible={modalHabit} onClose={() => setModalHabit(false)}>
@@ -601,12 +274,10 @@ export default function TodayScreen() {
             autoFocus
             containerStyle={s.habitNameInput}
           />
-          <FormInput
-            label={t('forms.emoji')}
-            placeholder="💪"
+          <EmojiPicker
             value={habitEmoji}
-            onChangeText={setHabitEmoji}
-            maxLength={4}
+            onSelect={setHabitEmoji}
+            label={t('forms.emoji')}
             containerStyle={s.habitEmojiInput}
           />
         </View>
@@ -658,45 +329,9 @@ export default function TodayScreen() {
           type={editItem.type}
           initialData={editItem.data as any}
           onClose={() => setEditItem(null)}
-          onSave={(data) => {
-            if (editItem.type === 'task') editTask(editItem.data.id, data as any);
-            else editHabit(editItem.data.id, data as any);
-          }}
+          onSave={(data) => editHabit(editItem.data.id, data as any)}
         />
       )}
-
-      {/* Modal: nueva categoría */}
-      <BottomModal visible={modalNewCategory} onClose={() => setModalNewCategory(false)}>
-        <Text style={[s.modalTitle, { color: theme.text }]}>Nueva categoría</Text>
-        <View style={{ flexDirection: 'row', gap: 8, marginBottom: Spacing.md }}>
-          <View style={{ flex: 1 }}>
-            <Text style={[s.formLabel, { color: theme.textSecondary }]}>Nombre *</Text>
-            <TextInput
-              placeholder="Ej: Finanzas"
-              placeholderTextColor={theme.textMuted}
-              value={newCatName}
-              onChangeText={setNewCatName}
-              style={[s.textInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface2 }]}
-              autoFocus
-            />
-          </View>
-          <View style={{ width: 72 }}>
-            <Text style={[s.formLabel, { color: theme.textSecondary }]}>Emoji</Text>
-            <TextInput
-              placeholder="📌"
-              placeholderTextColor={theme.textMuted}
-              value={newCatEmoji}
-              onChangeText={setNewCatEmoji}
-              maxLength={4}
-              style={[s.textInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface2, textAlign: 'center', fontSize: 22 }]}
-            />
-          </View>
-        </View>
-        <View style={s.modalActions}>
-          <OrangeButton label={t('actions.cancel')} onPress={() => setModalNewCategory(false)} variant="ghost" style={{ flex: 1 }} />
-          <OrangeButton label={t('actions.save')} onPress={handleCreateCategory} style={{ flex: 2 }} />
-        </View>
-      </BottomModal>
     </SafeAreaView>
   );
 }
@@ -714,7 +349,6 @@ const makeStyles = (_theme: AppTheme) =>
       paddingBottom: 0,
     },
     title: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
-    headerBtns: { flexDirection: 'row', gap: 8 },
     circleBtn: {
       width: 38,
       height: 38,
@@ -724,8 +358,6 @@ const makeStyles = (_theme: AppTheme) =>
     },
     circleBtnText: { fontSize: 22, fontWeight: '300', marginTop: -1 },
     ringSection: { alignItems: 'center', paddingVertical: Spacing.lg },
-    ringsRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.xl },
-    ringWrapper: { alignItems: 'center' },
     section: { paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg },
     sectionHeader: {
       flexDirection: 'row',
@@ -740,7 +372,6 @@ const makeStyles = (_theme: AppTheme) =>
       letterSpacing: 0.5,
     },
     sectionAction: { fontSize: 14, fontWeight: '600' },
-    emptyInline: { fontSize: 13, paddingVertical: 8 },
     emptyCard: {
       borderRadius: Radius.xl,
       padding: Spacing.xl,
@@ -768,52 +399,4 @@ const makeStyles = (_theme: AppTheme) =>
     habitNameRow: { flexDirection: 'row', gap: 8 },
     habitNameInput: { flex: 17, marginBottom: Spacing.md },
     habitEmojiInput: { flex: 4, marginBottom: Spacing.md },
-    filterRow: {
-      flexDirection: 'row',
-      gap: 8,
-      marginBottom: Spacing.md,
-    },
-    filterChip: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: Radius.full,
-      borderWidth: 1,
-      borderColor: 'transparent',
-    },
-    filterText: {
-      fontSize: 13,
-      fontWeight: '600',
-    },
-    textInput: {
-      borderWidth: 1,
-      borderRadius: Radius.md,
-      padding: Spacing.sm,
-      fontSize: 15,
-    },
-    overdueDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: '#FF9F0A',
-    },
-    overdueRowHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 4,
-      marginBottom: 4,
-      marginTop: 2,
-    },
-    overdueAgeLabel: {
-      fontSize: 11,
-      fontWeight: '600',
-      color: '#FF9F0A',
-      textTransform: 'uppercase',
-      letterSpacing: 0.3,
-    },
-    overdueMoveBtn: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: '#FF9F0A',
-    },
   });

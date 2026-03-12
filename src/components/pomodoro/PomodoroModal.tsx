@@ -44,6 +44,52 @@ const MODE_LABELS: Record<PomodoroMode, string> = {
     longBreak: 'Descanso largo',
 };
 
+// ── Minute stepper (same visual pattern as sleep TimePicker) ──────────────────
+
+function MinuteStepper({ value, onChange, label, color, min = 1, max = 90 }: {
+    value: number;
+    onChange: (v: number) => void;
+    label: string;
+    color: string;
+    min?: number;
+    max?: number;
+}) {
+    const { theme } = useTheme();
+    return (
+        <View style={ms.wrap}>
+            <Text style={[ms.label, { color: theme.textSecondary }]}>{label}</Text>
+            <View style={[ms.box, { backgroundColor: theme.surface2, borderColor: `${color}50` }]}>
+                <Pressable onPress={() => onChange(Math.min(max, value + 1))} style={ms.arrow}>
+                    <Text style={[ms.arrowTxt, { color }]}>▲</Text>
+                </Pressable>
+                <Text style={[ms.digit, { color }]}>{String(value).padStart(2, '0')}</Text>
+                <Pressable onPress={() => onChange(Math.max(min, value - 1))} style={ms.arrow}>
+                    <Text style={[ms.arrowTxt, { color }]}>▼</Text>
+                </Pressable>
+                <Text style={[ms.unit, { color: theme.textMuted }]}>min</Text>
+            </View>
+        </View>
+    );
+}
+
+const ms = StyleSheet.create({
+    wrap: { flex: 1, alignItems: 'center', gap: 8 },
+    label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' },
+    box: {
+        alignItems: 'center',
+        borderRadius: Radius.lg,
+        borderWidth: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        gap: 4,
+        width: '100%',
+    },
+    arrow: { padding: 6 },
+    arrowTxt: { fontSize: 13, fontWeight: '700' },
+    digit: { fontSize: 32, fontWeight: '800', letterSpacing: -1, width: 52, textAlign: 'center', fontVariant: ['tabular-nums'] },
+    unit: { fontSize: 12, fontWeight: '500' },
+});
+
 // ── Sub-views ─────────────────────────────────────────────────────────────────
 
 function ModeSelector({ value, onChange, accentColor }: {
@@ -88,6 +134,7 @@ function SetupView({ onStart, onOpenSettings }: { onStart: () => void; onOpenSet
         linkedTaskId,
         startTimer,
         linkTask,
+        updateSettings,
     } = usePomodoroStore();
 
     const tasks = useStore((s) => s.tasks).filter((t) => !t.completed);
@@ -105,12 +152,6 @@ function SetupView({ onStart, onOpenSettings }: { onStart: () => void; onOpenSet
     const allCategories = useStore((s) => s.getAllCategories)();
 
     const accentColor = POMODORO_COLORS[localMode];
-    const duration = localMode === 'work'
-        ? settings.workDuration
-        : localMode === 'shortBreak'
-            ? settings.shortBreakDuration
-            : settings.longBreakDuration;
-
     const linkedTask = todayTasks.find((t) => t.id === linkedTaskId);
 
     const filteredTasks = searchQuery.trim()
@@ -155,10 +196,39 @@ function SetupView({ onStart, onOpenSettings }: { onStart: () => void; onOpenSet
             <Text style={[sv.label, { color: theme.textSecondary }]}>Modo</Text>
             <ModeSelector value={localMode} onChange={setLocalMode} accentColor={accentColor} />
 
-            {/* Duration display */}
-            <View style={[sv.durationCard, { backgroundColor: `${accentColor}18`, borderColor: `${accentColor}40` }]}>
-                <Text style={[sv.durationTime, { color: accentColor }]}>{duration}:00</Text>
-                <Text style={[sv.durationLabel, { color: accentColor }]}>minutos</Text>
+            {/* Duration stepper — only for the selected mode */}
+            <Text style={[sv.label, { color: theme.textSecondary }]}>Duración</Text>
+            <View style={sv.steppersRow}>
+                {localMode === 'work' && (
+                    <MinuteStepper
+                        label="Trabajo"
+                        value={settings.workDuration}
+                        onChange={(v) => updateSettings({ workDuration: v })}
+                        color={POMODORO_COLORS.work}
+                        min={1}
+                        max={90}
+                    />
+                )}
+                {localMode === 'shortBreak' && (
+                    <MinuteStepper
+                        label="Descanso"
+                        value={settings.shortBreakDuration}
+                        onChange={(v) => updateSettings({ shortBreakDuration: v })}
+                        color={POMODORO_COLORS.shortBreak}
+                        min={1}
+                        max={30}
+                    />
+                )}
+                {localMode === 'longBreak' && (
+                    <MinuteStepper
+                        label="Descanso largo"
+                        value={settings.longBreakDuration}
+                        onChange={(v) => updateSettings({ longBreakDuration: v })}
+                        color={POMODORO_COLORS.longBreak}
+                        min={5}
+                        max={60}
+                    />
+                )}
             </View>
 
             {/* Link a task */}
@@ -491,16 +561,10 @@ function SettingsView({ onBack }: { onBack: () => void }) {
     const { theme } = useTheme();
     const { settings, updateSettings } = usePomodoroStore();
 
-    const [work, setWork] = useState(String(settings.workDuration));
-    const [shortB, setShortB] = useState(String(settings.shortBreakDuration));
-    const [longB, setLongB] = useState(String(settings.longBreakDuration));
     const [sessions, setSessions] = useState(String(settings.sessionsUntilLongBreak));
 
     const handleSave = () => {
         updateSettings({
-            workDuration: Math.max(1, Math.min(90, Number(work) || 25)),
-            shortBreakDuration: Math.max(1, Math.min(30, Number(shortB) || 5)),
-            longBreakDuration: Math.max(5, Math.min(60, Number(longB) || 15)),
             sessionsUntilLongBreak: Math.max(1, Math.min(8, Number(sessions) || 4)),
         });
         onBack();
@@ -536,13 +600,7 @@ function SettingsView({ onBack }: { onBack: () => void }) {
                 <View style={{ width: 28 }} />
             </View>
 
-            <Text style={[sfv.section, { color: theme.textSecondary }]}>DURACIONES</Text>
-
-            <Field label="Trabajo" value={work} onChange={setWork} color={POMODORO_COLORS.work} />
-            <Field label="Descanso corto" value={shortB} onChange={setShortB} color={POMODORO_COLORS.shortBreak} />
-            <Field label="Descanso largo" value={longB} onChange={setLongB} color={POMODORO_COLORS.longBreak} />
-
-            <Text style={[sfv.section, { color: theme.textSecondary, marginTop: Spacing.lg }]}>CICLO</Text>
+            <Text style={[sfv.section, { color: theme.textSecondary }]}>CICLO</Text>
             <Field label="Sesiones hasta descanso largo" value={sessions} onChange={setSessions} color={POMODORO_COLORS.work} />
 
             <Text style={[sfv.section, { color: theme.textSecondary, marginTop: Spacing.lg }]}>OPCIONES</Text>
@@ -672,6 +730,7 @@ const sv = StyleSheet.create({
     settingsBtn: { padding: 4 },
     label: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
     modeRow: { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
+    steppersRow: { flexDirection: 'row', gap: 10, marginBottom: Spacing.lg },
     modeChip: {
         flex: 1,
         paddingVertical: 10,
@@ -680,15 +739,6 @@ const sv = StyleSheet.create({
         alignItems: 'center',
     },
     modeChipText: { fontSize: 12, fontWeight: '700' },
-    durationCard: {
-        borderRadius: Radius.xl,
-        borderWidth: 1,
-        paddingVertical: Spacing.xl,
-        alignItems: 'center',
-        marginBottom: Spacing.lg,
-    },
-    durationTime: { fontSize: 56, fontWeight: '800', letterSpacing: -2, fontVariant: ['tabular-nums'] },
-    durationLabel: { fontSize: 14, fontWeight: '500', marginTop: 4, opacity: 0.8 },
     linkedTask: {
         flexDirection: 'row',
         alignItems: 'center',

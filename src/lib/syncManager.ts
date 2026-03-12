@@ -91,7 +91,6 @@ async function uploadAll(userId: string): Promise<void> {
     uploadHabits(userId, main.habits, now),
     uploadHabitHistory(userId, main.history, now),
     uploadTasks(userId, main.tasks, now),
-    uploadWeeklyGoals(userId, main.weeklyGoals, now),
     uploadShoppingItems(userId, main.shoppingList, now),
     uploadCustomCategories(userId, main.customCategories, now),
     uploadUserSettings(userId, { language: main.language, themeMode: main.themeMode }, now),
@@ -145,21 +144,6 @@ async function uploadTasks(userId: string, tasks: any[], now: string) {
   }));
   const { error } = await supabase.from('tasks').upsert(rows, { onConflict: 'id' });
   if (error) throw new Error(`tasks: ${error.message}`);
-}
-
-async function uploadWeeklyGoals(userId: string, goals: any[], now: string) {
-  if (!goals.length) return;
-  const rows = goals.map((g) => ({
-    id: g.id,
-    user_id: userId,
-    title: g.title,
-    target_count: g.targetCount,
-    week_start: g.weekStart,
-    completions: g.completions,
-    updated_at: now,
-  }));
-  const { error } = await supabase.from('weekly_goals').upsert(rows, { onConflict: 'id' });
-  if (error) throw new Error(`weekly_goals: ${error.message}`);
 }
 
 async function uploadShoppingItems(userId: string, items: any[], now: string) {
@@ -278,7 +262,6 @@ export async function downloadAll(): Promise<boolean> {
       habitsRes,
       historyRes,
       tasksRes,
-      goalsRes,
       shoppingRes,
       categoriesRes,
       settingsRes,
@@ -290,7 +273,6 @@ export async function downloadAll(): Promise<boolean> {
       supabase.from('habits').select('*').eq('user_id', user.id).is('deleted_at', null),
       supabase.from('habit_history').select('*').eq('user_id', user.id),
       supabase.from('tasks').select('*').eq('user_id', user.id).is('deleted_at', null),
-      supabase.from('weekly_goals').select('*').eq('user_id', user.id).is('deleted_at', null),
       supabase.from('shopping_items').select('*').eq('user_id', user.id).is('deleted_at', null),
       supabase.from('custom_categories').select('*').eq('user_id', user.id).is('deleted_at', null),
       supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
@@ -327,14 +309,6 @@ export async function downloadAll(): Promise<boolean> {
         completed: t.completed, category: t.category,
       }));
       mainStore.setState({ tasks });
-    }
-
-    if (goalsRes.data) {
-      const weeklyGoals = goalsRes.data.map((g: any) => ({
-        id: g.id, title: g.title, targetCount: g.target_count,
-        weekStart: g.week_start, completions: g.completions,
-      }));
-      mainStore.setState({ weeklyGoals });
     }
 
     if (shoppingRes.data) {
@@ -426,13 +400,12 @@ export async function downloadAll(): Promise<boolean> {
 export function getLocalDataSummary(): {
   habits: number;
   tasks: number;
-  goals: number;
   shoppingItems: number;
   sleepLogs: number;
   pomodoroSessions: number;
 } {
   if (!_mainStore || !_pomodoroStore || !_sleepStore) {
-    return { habits: 0, tasks: 0, goals: 0, shoppingItems: 0, sleepLogs: 0, pomodoroSessions: 0 };
+    return { habits: 0, tasks: 0, shoppingItems: 0, sleepLogs: 0, pomodoroSessions: 0 };
   }
   const main = (_mainStore as any).getState();
   const pomodoro = (_pomodoroStore as any).getState();
@@ -440,7 +413,6 @@ export function getLocalDataSummary(): {
   return {
     habits: main.habits?.length ?? 0,
     tasks: main.tasks?.length ?? 0,
-    goals: main.weeklyGoals?.length ?? 0,
     shoppingItems: main.shoppingList?.length ?? 0,
     sleepLogs: Object.keys(sleep.logs ?? {}).length,
     pomodoroSessions: pomodoro.sessions?.length ?? 0,
@@ -475,7 +447,6 @@ export async function migrateLocalData(): Promise<{ success: boolean; error?: st
       () => uploadHabits(user.id, main.habits ?? [], now),
       () => uploadHabitHistory(user.id, main.history ?? {}, now),
       () => uploadTasks(user.id, main.tasks ?? [], now),
-      () => uploadWeeklyGoals(user.id, main.weeklyGoals ?? [], now),
       () => uploadShoppingItems(user.id, main.shoppingList ?? [], now),
       () => uploadCustomCategories(user.id, main.customCategories ?? [], now),
       () => uploadUserSettings(user.id, { language: main.language, themeMode: main.themeMode }, now),

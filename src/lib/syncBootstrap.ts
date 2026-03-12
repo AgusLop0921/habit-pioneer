@@ -42,7 +42,6 @@ export function bootstrapSync() {
       state.habits !== prev.habits ||
       state.history !== prev.history ||
       state.tasks !== prev.tasks ||
-      state.weeklyGoals !== prev.weeklyGoals ||
       state.shoppingList !== prev.shoppingList ||
       state.customCategories !== prev.customCategories ||
       state.language !== prev.language ||
